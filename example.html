@@ -1,0 +1,314 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>一份真报告长什么样 · 酒馆体检台</title>
+<meta name="description" content="体检报告样例：读数、逐项发现带原文、怎么改、修的顺序，以及本工具不查什么。">
+<style>
+:root{color-scheme:light dark;--bg:#fbfbf9;--fg:#1a1a1a;--mut:#5b5b5b;--line:#e2e0da;--acc:#1a4c86;--code:#f2f0ea;--card:#fff}
+@media (prefers-color-scheme:dark){:root{--bg:#14161a;--fg:#e9e9e6;--mut:#a8a8a4;--line:#2c3037;--acc:#a9c6ee;--code:#1e2229;--card:#1b1f25}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+main{max-width:760px;margin:0 auto;padding:36px 20px 90px}
+h1{font-size:clamp(22px,4vw,30px);margin:18px 0 12px}
+h2{font-size:19px;margin:28px 0 8px;padding-top:14px;border-top:1px solid var(--line)}
+h3{font-size:17px;margin:22px 0 8px}
+blockquote{margin:10px 0;padding:8px 14px;border-left:3px solid var(--acc);background:var(--code);border-radius:0 8px 8px 0;font-size:15px;color:var(--mut);overflow-wrap:anywhere}
+code{background:var(--code);padding:1px 5px;border-radius:5px;font-size:.92em}
+ul{margin:8px 0;padding-left:22px}
+pre{background:var(--code);padding:14px;border-radius:10px;overflow:auto;font-size:12.5px;line-height:1.5}
+details{margin:18px 0;border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+summary{cursor:pointer;color:var(--mut);font-size:14px}
+.banner{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-size:14px;color:var(--mut);margin-bottom:8px}
+.banner b{color:var(--fg)}
+a{color:var(--acc)}
+footer{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);font-size:14px;color:var(--mut)}
+</style></head><body><main>
+<div class="banner"><b>这是样例，不是客户数据。</b>用的是一份公开测试样本（角色 Tobirama，38 条消息），原样跑出来的完整报告，一个字没改。
+你也可以 <a href="start.html">直接投自己的记录</a>，1–3 分钟拿到同一格式的报告：免费、不用注册。</div>
+<h1>酒馆对话体检报告</h1>
+
+<ul>
+<li>来源：<code>chat.jsonl</code></li>
+<li>角色：Tobirama Senju2｜玩家：You</li>
+<li>消息：38 条（模型 20 / 玩家 18）</li>
+<li>读数：文件里 39 行 → 读到 38 条，全部读到（没有读不出的行）</li>
+<li>平均长度：模型 454.9 字 / 玩家 242.8 字</li>
+<li>问题分布：高 0 · 中 3 · 低 1</li>
+</ul>
+<h2>一句话结论</h2>
+
+<p>没有高危项。中等的问题里最值得先看的是：<strong>回复开头同质化：8/20 条都以「_Tobi」起头</strong>。</p>
+
+<p>这类问题通常不影响「能不能用」，只影响「像不像」。真要下结论是否训模型，先按清单收一轮再看。</p>
+
+<h2>逐项发现</h2>
+
+<h3>[中] 回复开头同质化：8/20 条都以「_Tobi」起头</h3>
+
+<p>开头集中说明模型在用同一套句式模板起句，读起来会「一眼 AI」。</p>
+
+<blockquote>#2 _Tobirama looks at you, his eyes narrow and his frown deepen_ You are a foolish and cocky …</blockquote>
+
+<p><strong>怎么改：</strong> 在预设的后置指令(post_history_instructions)里要求「每条回复不得与上一条用相同句式开头」，或降低 frequency_penalty 之外的重复惩罚、并补充不同场景的示例。</p>
+
+<h3>[中] 4 条回复都卡在 506 字附近，像撞了输出上限</h3>
+
+<p>最长 506 字，有 4 条落在它 ±3% 以内。长度整齐地贴在天花板上，说明不是它想停在这里，是被切在这里——这会同时压低长度感、拉平节奏，也让模型把「写到这里就断」当成习惯。</p>
+
+<blockquote>#4 …hange your way of speaking, or I will use my jutsu on you!__</blockquote>
+<blockquote>#12 …shes ,he looks on as the tsunami begins to freeze in place..</blockquote>
+<blockquote>#20 …t is the power of humans!__ _He says proudly while smiling._</blockquote>
+<blockquote>#37 …he is whole again, a soul mate who has completed his life.._</blockquote>
+
+<p><strong>怎么改：</strong> 把 max_tokens 提高（按英文约 4 字符≈1 token 估），或者反过来在提示词里规定「每条 N 字内收住」，让它在预算内自己收尾。</p>
+
+<h3>[中] 疑似替玩家说话：1 条回复把玩家的「死/灵魂/终结」写成了既成事实</h3>
+
+<p>导出里玩家名是通用名（You），按名字匹配会把正常第二人称对白全算成抢话，所以这一项只开了一条窄规则：只认不可逆结果（you die / your soul / 你会死 这类），不认身体部位与普通动作。命中的条数是真的，没命中的不代表没有抢话。</p>
+
+<blockquote>#6 __You have gone and done it now!__ __Here comes a jutsu!__ __The Reaper Death Seal!__ __You&#x27;re done for!__ _Tobirama cha…</blockquote>
+
+<p><strong>怎么改：</strong> 在角色卡或后置指令里写一条正向规则：「只写自己的动作与台词；对方的动作、命运与结局由对方自己决定」。</p>
+
+<h3>[低] 角色卡没有写 system_prompt</h3>
+
+<p>这里空着时，实际生效的是预设里的主提示词——确认你有意如此；若预设也被改过，就容易出现「人设和语气各说各话」。</p>
+
+<p><strong>怎么改：</strong> 要么在预设里维护统一的主提示词，要么在角色卡里写死这一角色的说话规则，别两处都改动。</p>
+
+<h2>修的顺序（按性价比）</h2>
+
+<p>1. 去套路化：主提示词写死起句规则 + 示例对话给足短句范本。</p>
+<p>2. 回复整齐贴在上限附近：调大 max_tokens，或在提示词里写明「每条 N 字内收住」，让它自己收尾而不是被切。</p>
+<p>3. 止住「替玩家说话」：角色卡或后置指令写正向规则——只写自己的动作与台词，对方的动作与命运由对方决定；同时删掉旧回复里被代写的段落，别让模型学回去。</p>
+<p>4. 补一条系统提示词：它是什么身份、在什么场景、哪些话不能说——只有一处写，别预设与卡各写一半。</p>
+
+<h2>要不要训 LoRA</h2>
+
+<h3>一、证据够不够先下结论</h3>
+<ul>
+<li>属于「先修配置与提示词」的项：1 类（见上表，按性价比顺序修）。</li>
+</ul>
+<h3>二、修完之后还剩下什么，才轮到 LoRA</h3>
+<p>LoRA 解决的是「稳定地像某个特定角色/某种特定文风说话」，它解决不了：设定记不住（→ 世界书/RAG）、半句截断（→ 参数）、格式不听话（→ 示例与模板）、上下文溢出（→ 长度管理）。</p>
+
+<p>判断要不要训，用这四条，缺一条就先别训：</p>
+<p>1. <strong>修完提示词与参数后，用同一套 30-50 轮测试对话重跑，风格问题仍然 ≥30% 的回复出现</strong>（本工具支持改前/改后对比同类指标）。</p>
+<p>2. <strong>你要的是「声音」不是「知识」</strong>：口癖、句长、用词、情绪表达方式；设定类内容走世界书更便宜也更可改。</p>
+<p>3. <strong>手上有一批高质量样本</strong>：目标角色的真实对话 100-300 条（多角色/多情境更好），或你自己写的 50-100 条「这就是我要的样子」；样本质量差、只有几张角色卡，训出来只会把你现在的坏习惯固化。</p>
+<p>4. <strong>能承担「把别处答坏」的代价</strong>：微调会有灾难性遗忘，必须准备一份 20-30 条的回归测试集（原来的通用能力、其他角色、指令跟随），训完逐条对比。</p>
+
+<p><strong>当前判断：先别训。</strong> 记录里还有 1 类配置/参数层面的硬问题，它们会污染你判断「模型风格」的原始材料；按上面顺序修完重跑一遍，再回来看这一节。</p>
+
+<h2>附：关键指标</h2>
+
+<details><summary>附：关键指标（机器可读的原始数字，点开看）</summary><pre>{
+  &quot;inputs&quot;: {
+    &quot;card&quot;: true,
+    &quot;preset&quot;: false
+  },
+  &quot;counts&quot;: {
+    &quot;messages&quot;: 38,
+    &quot;assistant&quot;: 20,
+    &quot;user&quot;: 18,
+    &quot;char_name&quot;: &quot;Tobirama Senju2&quot;,
+    &quot;user_name&quot;: &quot;You&quot;
+  },
+  &quot;read&quot;: {
+    &quot;file_lines&quot;: 39,
+    &quot;header_line&quot;: 1,
+    &quot;messages&quot;: 38,
+    &quot;unrecognized&quot;: 0,
+    &quot;empty_body&quot;: 0,
+    &quot;bad_lines&quot;: 0,
+    &quot;unread&quot;: 0,
+    &quot;unread_share&quot;: 0.0
+  },
+  &quot;chars&quot;: {
+    &quot;assistant_total&quot;: 9097,
+    &quot;assistant_mean&quot;: 454.9,
+    &quot;user_mean&quot;: 242.8
+  },
+  &quot;cliche&quot;: {
+    &quot;messages_with_cliche&quot;: 0,
+    &quot;rate&quot;: 0.0,
+    &quot;top&quot;: [],
+    &quot;lang&quot;: &quot;en&quot;,
+    &quot;wordlist&quot;: 39,
+    &quot;per_1k_chars&quot;: 0.0
+  },
+  &quot;openings&quot;: {
+    &quot;top&quot;: [
+      [
+        &quot;_Tobi&quot;,
+        8
+      ],
+      [
+        &quot;Tobir&quot;,
+        1
+      ],
+      [
+        &quot;_He s&quot;,
+        1
+      ],
+      [
+        &quot;__You&quot;,
+        1
+      ],
+      [
+        &quot;Oh re&quot;,
+        1
+      ]
+    ],
+    &quot;repeat_share&quot;: 0.4
+  },
+  &quot;inner_repeat&quot;: {
+    &quot;flagged&quot;: 0,
+    &quot;rate&quot;: 0.0
+  },
+  &quot;adjacent_similarity&quot;: {
+    &quot;pairs&quot;: 0
+  },
+  &quot;distinct2&quot;: 0.077,
+  &quot;break&quot;: {
+    &quot;solid&quot;: 0,
+    &quot;soft&quot;: 0,
+    &quot;rate&quot;: 0.0
+  },
+  &quot;steal_user&quot;: {
+    &quot;flagged&quot;: 1,
+    &quot;judged&quot;: false,
+    &quot;narrow&quot;: 1,
+    &quot;reason&quot;: &quot;导出里玩家名是通用名「You」，不是真名；按名字匹配会把正常第二人称对白全算成抢话（英文记录实测 13 报 12 冤），所以这里只开了一条窄规则：只认「you die / your soul / 你会死」这类不可逆结果，本次命中 1 条；普通动作与台词抓不到，需人工扫一眼。&quot;,
+    &quot;candidates&quot;: [
+      {
+        &quot;i&quot;: 6,
+        &quot;quote&quot;: &quot;__You have gone and done it now!__ __Here comes a jutsu!__ __The Reaper Death Seal!__ __You&#x27;re done for!__ _Tobirama cha…&quot;
+      },
+      {
+        &quot;i&quot;: 29,
+        &quot;quote&quot;: &quot;_As you meditated, a light began to shine. Suddenly, her healing powers were so strong that it helped to bring back mill…&quot;
+      }
+    ]
+  },
+  &quot;truncation&quot;: {
+    &quot;flagged&quot;: 0,
+    &quot;max_len&quot;: 506,
+    &quot;p90_len&quot;: 498,
+    &quot;near_max&quot;: 4
+  },
+  &quot;drift&quot;: {
+    &quot;first_third_mean_len&quot;: 446.8,
+    &quot;last_third_mean_len&quot;: 444.8,
+    &quot;ratio&quot;: 1.0,
+    &quot;dialogue_ratio_first&quot;: 0.0,
+    &quot;dialogue_ratio_last&quot;: 0.0
+  },
+  &quot;mixed_language&quot;: {
+    &quot;flagged&quot;: 20,
+    &quot;foreign_script&quot;: 0,
+    &quot;latin_heavy&quot;: 20,
+    &quot;zh_user_share&quot;: 0.0,
+    &quot;zh_scene&quot;: false,
+    &quot;rule&quot;: &quot;客户说中文（用户文本中文字符≥20 且占比≥50%）才算场景。混进俄文/假名/韩文/阿拉伯文等非中非拉丁文字：1 条就报；成段英文：占模型回复 ≥15% 才报&quot;
+  },
+  &quot;context&quot;: {
+    &quot;history_chars&quot;: 13467,
+    &quot;est_tokens&quot;: 3751,
+    &quot;preset_context&quot;: 0,
+    &quot;worldinfo_chars&quot;: 0,
+    &quot;worldinfo_est_tokens&quot;: 0,
+    &quot;est_tokens_with_worldinfo&quot;: 3751
+  },
+  &quot;card&quot;: {
+    &quot;description_chars&quot;: 500,
+    &quot;personality_chars&quot;: 0,
+    &quot;scenario_chars&quot;: 0,
+    &quot;mes_example_chars&quot;: 487,
+    &quot;system_prompt_chars&quot;: 0,
+    &quot;post_history_chars&quot;: 0,
+    &quot;book_entries&quot;: 0,
+    &quot;negative_instructions_per_500&quot;: 0.0,
+    &quot;book_dead_entries&quot;: 0,
+    &quot;book_long_entries&quot;: 0,
+    &quot;format_consistency&quot;: {
+      &quot;example_star&quot;: false,
+      &quot;reply_star_rate&quot;: 0.1
+    }
+  },
+  &quot;placeholder&quot;: {
+    &quot;flagged&quot;: 0,
+    &quot;indices&quot;: []
+  },
+  &quot;self_continue&quot;: {
+    &quot;count&quot;: 1,
+    &quot;runs&quot;: [
+      {
+        &quot;indices&quot;: [
+          4,
+          5,
+          6
+        ],
+        &quot;names&quot;: [
+          &quot;Tobirama Senju2&quot;
+        ],
+        &quot;quotes&quot;: [
+          {
+            &quot;i&quot;: 4,
+            &quot;quote&quot;: &quot;_Tobirama&#x27;s face was filled with a sense of disappointment as he heard…&quot;
+          },
+          {
+            &quot;i&quot;: 5,
+            &quot;quote&quot;: &quot;_He saw you didn&#x27;t listen to him when he gave you the last chance. He …&quot;
+          }
+        ]
+      }
+    ]
+  },
+  &quot;finding_ids&quot;: [
+    &quot;opening&quot;,
+    &quot;steal_user&quot;,
+    &quot;len_cap&quot;,
+    &quot;card_no_sysprompt&quot;
+  ]
+}</pre></details>
+
+<p><strong>量到了、但没到报警线的数</strong>（这些不进上面的发现，但客户看指标块会看见，得知道怎么读）：</p>
+
+<ul>
+<li><strong>越聊越长</strong>：长度比 1.00（前三分之一 446.8 字 → 后三分之一 444.8 字），报警线 1.6。现在只是轻微变长，长对话跑久了会累积。</li>
+<li><strong>用词多样性</strong>：0.077（越接近 1 越不重样）。这一项没有报警线，只作改前改后对照用——同一段剧情重跑，它掉下去就是变重复了。</li>
+</ul>
+<p><strong>零命中的项怎么读</strong>（别把「没抓到」当成「没问题」）：</p>
+
+<ul>
+<li><strong>套路短句</strong>：39 条英文词表，本次一条也没命中。这只说明记录里没有词表上的固定句式，同义改写和换词复读都抓不到；报告写成「未发现出现过」，不能读成「没有套路化」。英文词表来自外部用户跨几十段对话的统计，在真英文记录上命中过（pippa-mei 53 条中 9 条，都是 smirk 这类）；但它只认固定句式，同义改写抓不到。</li>
+<li><strong>半句截断</strong>：0 条，是「本次没发现」，不是「不会截断」——短回复的截断要靠 len_cap 那一项才看得见。</li>
+<li><strong>模板变量泄漏</strong>：0 条，读法是「本次没有把 {{user}} / &lt;BOT&gt; 这类变量原样吐出来」；它只认固定形态，模型把变量改写成「你」「那位」之类就抓不到。</li>
+</ul>
+<p><strong>这条要人工看的行</strong>（1 条；第二人称被写成既成事实的处置或动作，是线索不是判决）：</p>
+
+<ul>
+<li>第 29 条：「_As you meditated, a light began to shine. Suddenly, her healing powers were so strong that it helped to bring back mill…」</li>
+</ul>
+<p><strong>要人工看的行：连着两条模型回复</strong>（1 段，最长 3 条中间没有说话）</p>
+
+<p>导出文件里只有两种来路，从文件本身看不出是哪一种：① 你自己点了「继续 / Continue」——那就不是毛病，是我们只能给线索；② 模型没等你说话就把戏演下去了——那就要修，改法在提示词和停止串，不在模型。所以这条<strong>不算发现、不进严重度</strong>，列出来给你自己认。</p>
+
+<ul>
+<li>第 4、5、6 条：「_Tobirama&#x27;s face was filled with a sense of disappointment as he heard…」 / 「_He saw you didn&#x27;t listen to him when he gave you the last chance. He …」</li>
+</ul>
+<p>这一项只能说明「有人或有什么东西没等玩家就接下去了」；要分清是模型还是你自己点的继续，得有带 <code>send_date</code> 或 Continue 标记的导出记录——手上还没有这样的真样本，所以先不下结论。</p>
+
+<h2>本工具不查什么（量过决定不做，不是漏了）</h2>
+
+<ul>
+<li><strong>模型替你收尾、替你把剧情往前演</strong>：这类我们试过三种做法（和上一条玩家消息的 5-gram 重合、出现量级词、纯叙述无对白），在 164 条真实回复上一律抓不准——真实的「替你收尾」是换词重述，词面几乎不重叠；而能抓到的表面特征（没引号、人称混用）在正常的长篇叙述角色身上 20/20 全中。宁可少报一类，也不给一条会把好回复判病的判据。这条要你自己读；「连着两条模型回复」那栏能给你线索，但它分不清是你点了继续还是模型自己接话。</li>
+<li><strong>模型用「他 / 对方 / 你」代写你的动作，而不写你的名字</strong>：按名字匹配抓不到，得人工扫。</li>
+<li><strong>话题锚定复读（同一段设定反复提）</strong>：判据还没做出来，没有样本，本报告不涉及，别把「没写」当成「查过没问题」。</li>
+<li><strong>永远附和 / 一味顺从（Yes-Man）</strong>：这条要判「语义上是不是在附和一个不该附和的要求」，词面定不了。我们自己样本库 179 条模型回复量过一遍：以「当然 / 好的 / of course」这类开头的 5 条（真记录 3 条）<strong>全是角色在正常说话</strong>，而真记录里几乎没出现这个病——按语气词做判据只会冤好回复。所以不做，也不写成「查了没问题」。</li>
+<li><strong>角色被追问时到底答没答（回避诘问）</strong>：同一句「Oh… You seem agitated…」放在问责后面是回避，放在亲密戏后面是正常反应——病在「回合之间的关系」里，不在词里。我们自己标了 139 条真回复（真例 6 条），又试了三版词表：最好的一版召回 4/6、报警率 7%，而真比例只有 4.3%，<strong>噪声比信号大</strong>，所以不进报告、不给比例线。要人看，三步：①用户这一回合在问责吗 ②模型正面答了吗 ③是不是把话头转成了撒娇、委屈或「我还能做什么」。</li>
+</ul>
+<p>---</p>
+<p>改动前后请用<strong>同一段</strong>对话（同一批输入）重跑本工具，<code>--baseline</code> 会自动给出对比表。只改一个变量，不然分不清是哪一步起的作用。</p>
+<footer>报告里的数字全部来自记录本身；「不查什么」那节写的是我们量过之后决定不做、以及为什么。免费试：<a href="start.html">start.html</a> · <a href="index.html">回到首页</a></footer>
+</main></body></html>
