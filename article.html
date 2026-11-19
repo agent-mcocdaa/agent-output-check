@@ -1,0 +1,84 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Your roleplay character keeps repeating itself — how to tell whether it's the preset or the model</title>
+<meta name="description" content="A five-minute, offline way to tell whether a roleplay character's repetition is a prompt problem, a parameter problem, or a model problem — with the exact metrics and their limits.">
+<style>
+:root{color-scheme:light dark;--bg:#fbfbf9;--fg:#1a1a1a;--mut:#5b5b5b;--line:#e2e0da;--acc:#1a4c86;--code:#f2f0ea}
+@media (prefers-color-scheme:dark){:root{--bg:#14161a;--fg:#e9e9e6;--mut:#a8a8a4;--line:#2c3037;--acc:#a9c6ee;--code:#1e2229}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif}
+main{max-width:760px;margin:0 auto;padding:56px 22px 96px}
+h1{font-size:clamp(26px,4.4vw,40px);line-height:1.25;letter-spacing:-.01em;margin:0 0 18px}
+h2{font-size:clamp(19px,2.6vw,24px);margin:44px 0 12px;letter-spacing:-.005em}
+p,li{color:var(--fg)}
+p{margin:0 0 16px}
+ul{margin:0 0 18px;padding-left:22px}
+li{margin:6px 0}
+blockquote{margin:18px 0;padding:12px 16px;border-left:3px solid var(--acc);background:var(--code);color:var(--fg);font-size:15px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font-size:.92em}
+table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14.5px;display:block;overflow-x:auto}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--code)}
+a{color:var(--acc)}
+.lede{color:var(--mut);font-size:17px;margin-bottom:28px}
+footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);color:var(--mut);font-size:14px}
+</style></head><body><main>
+<h1>Your roleplay character keeps repeating itself — how to tell whether it's the preset or the model</h1>
+<p class="lede">A five-minute, offline way to separate a prompt problem, a parameter problem and a model problem. No model calls, no signup.</p>
+<p>People pour hours into a character card, get three great scenes, and then the character turns into a broken record: the same compliment, the same half-sentence ending in <code>*smiles softly*</code>, the same gesture narrated twice. The usual advice is &quot;turn temperature up&quot; (makes it worse) or &quot;you need to fine-tune a LoRA&quot; (costs money, and often fixes nothing, because the actual problem was a 150-token reply cap).</p>
+
+<p>I built a small offline checker for exactly this. It reads a SillyTavern JSONL export and prints what is measurable, with the exact message index and the original sentence as evidence. No model calls, no signup on the landing page. Below is the reasoning, the traps I had to back out of, and a link at the end.</p>
+
+<h2>1. &quot;Repetition&quot; is at least five different failures</h2>
+
+<p>They look identical to a human reading a chat, and they have opposite fixes:</p>
+
+<table>
+<tr><td>What you see</td><td>What it actually measures</td><td>Usual real fix</td></tr>
+<tr><td>Same stock phrases (<code>smirk</code>, <code>若有所思</code>, <code>挑眉</code>)</td><td>fixed-expression hit rate over a wordlist</td><td>persona/system prompt, or frequency penalty</td></tr>
+<tr><td>Every reply opens the same way</td><td>opening n-gram homogeneity</td><td>prompt for variation, not temperature</td></tr>
+<tr><td>Replies slowly shrink and end mid-sentence</td><td>length drift vs <code>max_tokens</code> (tokens estimated, not characters)</td><td>raise the cap, it is not the model</td></tr>
+<tr><td>Model answers its own question, or writes your line</td><td>self-continuation runs; &quot;steals the user&#x27;s turn&quot;</td><td>stop sequences, prompt structure</td></tr>
+<tr><td>Model re-narrates the setting you already know</td><td>topic anchoring</td><td>a genuinely hard semantic problem, mostly *not* solvable with wordlists</td></tr>
+</table>
+
+<p>Notice the third row: a 110-token cap on a model asked for a two-paragraph reply produces something that looks exactly like &quot;the model got lazy&quot;. People spend money on training before checking a number that is printed in their own preset file.</p>
+
+<h2>2. Measure first, and print the denominator</h2>
+
+<p>The single most common way a diagnostic tool lies to its user is quietly reading half the file and then reporting &quot;no problems found&quot;. Twice now, a real customer record in a slightly different format (<code>role</code>/<code>content</code> instead of <code>mes</code>/<code>is_user</code>) produced a report with zero findings, because the parser skipped the lines it did not recognise and the ratio section then divided by a silently reduced denominator.</p>
+
+<p>So the report starts with a reading line:</p>
+
+<p>```</p>
+<p>读数：文件里 44 行（含设置头 1 行）→ 读到 38 条消息；读不出 6 行（格式不认识 6 / 正文空 0 / 不是 JSON 0）</p>
+<p>```</p>
+
+<p>and if nothing was readable, the report says so in the first sentence instead of printing an empty finding list. Severity and finding counts are computed in one place, so &quot;0 problems&quot; can never appear next to &quot;no model replies found&quot; — that contradiction was a real bug reported by a user.</p>
+
+<h2>3. Say what you did not measure</h2>
+
+<p>A chat-only export contains no character card and no generation settings. Card-class checks (no example dialogue, card too thin, missing system prompt) and sampling-parameter checks (temperature, penalties, length cap) are then <strong>not testable</strong> — which is not the same as &quot;fine&quot;. The report says this explicitly:</p>
+
+<blockquote>材料：本单没有角色卡、也没有预设文件 —— 卡片类与采样参数类此项未测：不是没问题，是没材料可看。</blockquote>
+
+<p>Same for checks we decided not to ship. Two examples, with the numbers, because &quot;we don&#x27;t check X&quot; without data is indistinguishable from laziness:</p>
+
+<ul><li><strong>Refusals that dodge the question.</strong> A human labelled 139 real replies: 6 genuine cases, all on one character. Three wordlist versions reached at best 4/6 recall with a 7% hit rate against a 4.3% true base rate — more noise than signal. Not shipped. What is shipped is a three-step manual review checklist.</li>
+<li><strong>The &quot;always agrees with you&quot; syndrome.</strong> 179 model replies, 5 agreeable openers, all of them legitimate in context. Not shipped; the report states the base rate instead of pretending the check exists.</li>
+</ul>
+<h2>4. Never green-light training without a baseline</h2>
+
+<p>The tool&#x27;s verdict line has three states, and one hard rule: without a before/after baseline on the *same* scene, it never says &quot;you can start LoRA evaluation&quot;. It says <code>证据不足，先别训</code> and then names what is missing. If a parameter is out of range it says <code>还差一步，先别训</code> and points at the parameter. Saying &quot;train it&quot; is the one answer that costs the user money and can be wrong for reasons the tool cannot see.</p>
+
+<h2>5. Try it</h2>
+
+<p>Landing page (fixed URL, no signup): <strong>https://tavern-diagnose.surge.sh</strong></p>
+
+<p>The self-check page asks for a referral code, because we are running this as a small studio and want to keep bot traffic out. Use <code>DEVT-OUT-7C4E</code>.</p>
+
+<p>What it does with your data: the export is encrypted in your browser before it leaves, relayed through a public message relay (ntfy.sh) that only sees ciphertext, then decrypted on our machine; never sent to any model, never used for training, and there is a delete button. Diagnostics are free; training, if it is ever the right answer, is quoted separately — and &quot;not enough evidence&quot; is a perfectly normal answer.</p>
+
+<p>If you send me a record that the tool reads badly (a different export shape, a card format, a case where the diagnosis is obviously wrong), that is worth more to me right now than a compliment. Reply here or open an issue and I will look at it.</p>
+<footer>Written from real records, including the checks we decided <em>not</em> to ship. Try it free: <a href="https://tavern-diagnose.surge.sh/">tavern-diagnose.surge.sh</a></footer>
+</main></body></html>
