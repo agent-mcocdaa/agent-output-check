@@ -355,12 +355,14 @@
     find.innerHTML = TavernCheck.verdict(a).map(v => `<li><b>${v.k}</b>${v.t}</li>`).join("");
     hint.textContent = `读到 ${a.total} 条消息：我方 ${a.userCount} 条、角色 ${a.charCount} 条` + (a.unreadable ? `，另有 ${a.unreadable} 行没认出来` : "") + "。";
     out.classList.add("on");
-    sendForm.hidden = false;
+    sendForm.hidden = !CAN_SEND;
   }
 
   function run(){ const t = ta.value.trim(); if (!t) { err.hidden = false; err.textContent = "先粘一段对话进来。"; return; } render(t); }
 
   const sendForm = $("#send"), sendHint = $("#sendhint");
+  // 静态托管（GitHub Pages 等）没有后端：不显示「直接发给我」，改走邮箱
+  const CAN_SEND = !/\.github\.io$/.test(location.hostname);
   function b64(str){
     const bytes = new TextEncoder().encode(str);
     let bin = "", chunk = 0x8000;
