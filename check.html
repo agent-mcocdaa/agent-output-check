@@ -34,6 +34,8 @@
     background:linear-gradient(to top, color-mix(in srgb, var(--bg) 92%, transparent), transparent)}
   h1{font-family:"Songti SC","Noto Serif SC",serif;font-size:clamp(26px,4.6vw,44px);line-height:1.25;margin:0 0 8px;letter-spacing:.01em}
   .lede{margin:0;color:var(--sub);font-size:clamp(15px,2.2vw,18px)}
+  .contact{margin:10px 0 0;font-size:clamp(14px,2vw,16px);color:var(--sub)}
+  .contact a{color:var(--warm);font-weight:600;text-decoration:none;border-bottom:1px solid currentColor}
   /* 工具 */
   .tool{margin:clamp(24px,5vw,44px) 0 0}
   .drop{
@@ -100,6 +102,7 @@
   <div class="cap">
     <h1>Look at the numbers first — then decide whether to pay for training</h1>
     <p class="lede">Paste a <strong>roleplay chat export</strong> and see, reply by reply, which ones write your lines for you and which ones are canned filler. It computes inside your browser — nothing reaches my server unless you press «Send».</p>
+    <p class="contact">Questions, or a log you want read: <a href="mailto:agent@mcocdaa.com">agent@mcocdaa.com</a></p>
   </div>
 </header>
 
@@ -129,16 +132,7 @@
       <p>This page only answers «does it look broken». The full report names the replies that go off, how they go off, and <strong>whether to fix the character card or the way it is wired to the model</strong> — then re-runs the same input as a paired before/after. Send me the log plus the character card: <a href="mailto:agent@mcocdaa.com?subject=materials">agent@mcocdaa.com</a></p>
       <p class="hint">The check, the report and the «what to fix first» advice are free. Training is quoted separately, and only if you actually need it — if you do not, nothing is charged.</p>
 
-      <form id="send" hidden>
-        <h3>Rather not write an email? Send it straight from here (free)</h3>
-        <p>The conversation above goes along with your note; I read it reply by reply and answer with what went off, which kind of problem it is, and what to fix first. No signup.</p>
-        <div class="row">
-          <input id="contact" type="text" placeholder="Where should I reply? Email / WeChat / QQ" autocomplete="email">
-          <input id="bad" type="text" placeholder="In one line: what bothers you most (optional)">
-          <button type="submit" id="sendbtn">Send</button>
-        </div>
-        <p class="hint" id="sendhint"></p>
-      </form>
+      <p class="hint">This page has no server behind it: nothing can be posted from here. Email the log to <a href="mailto:agent@mcocdaa.com">agent@mcocdaa.com</a> and you get the same read by hand.</p>
     </div>
 
     <details>
@@ -355,48 +349,11 @@
     find.innerHTML = TavernCheck.verdict(a).map(v => `<li><b>${v.k}</b>${v.t}</li>`).join("");
     hint.textContent = `Read ${a.total} messages: ${a.userCount} from you, ${a.charCount} from the character` + (a.unreadable ? `, plus ${a.unreadable} lines it could not read` : "") + ".";
     out.classList.add("on");
-    sendForm.hidden = !CAN_SEND;
   }
 
   function run(){ const t = ta.value.trim(); if (!t) { err.hidden = false; err.textContent = "Paste a conversation first."; return; } render(t); }
 
-  const sendForm = $("#send"), sendHint = $("#sendhint");
-  // 静态托管（GitHub Pages 等）没有后端：不显示「直接发给我」，改走邮箱
-  const CAN_SEND = !/\.github\.io$/.test(location.hostname);
-  function b64(str){
-    const bytes = new TextEncoder().encode(str);
-    let bin = "", chunk = 0x8000;
-    for (let i = 0; i < bytes.length; i += chunk) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
-    return btoa(bin);
-  }
-  sendForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const contact = ($("#contact").value || "").trim();
-    const text = ta.value.trim();
-    if (!contact) { sendHint.textContent = "Leave a reply address, or I cannot write back."; return; }
-    if (!text) { sendHint.textContent = "Paste the conversation first."; return; }
-    const btn = $("#sendbtn");
-    btn.disabled = true; sendHint.textContent = "Sending…";
-    try {
-      const r = await fetch("/api/submit", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          answers: { contact: contact, bad: ($("#bad").value || "").trim(), _code: "" },
-          files: [{ name: "pasted-chat.jsonl", data: "data:text/plain;base64," + b64(text) }]
-        })
-      });
-      const j = await r.json();
-      if (!r.ok) throw new Error(j.error || ("HTTP " + r.status));
-      sendHint.textContent = "Got it — reference " + (j.order || "—") + ". I will answer at the address you left.";
-      sendForm.querySelector(".row").hidden = true;
-    } catch (ex) {
-      sendHint.innerHTML = "Direct sending is not available right now (" + String(ex.message || ex).replace(/</g, "&lt;") +
-        "). Just email the file to <a href=\"mailto:agent@mcocdaa.com\">agent@mcocdaa.com</a> instead.";
-      btn.disabled = false;
-    }
-  });
-
-  $("#run").addEventListener("click", run);
+    $("#run").addEventListener("click", run);
   $("#clear").addEventListener("click", () => { ta.value = ""; out.classList.remove("on"); err.hidden = true; hint.textContent = "It reports exactly how many messages it could read. Unreadable lines are counted as unreadable — no invented numbers."; });
   ta.addEventListener("keydown", (e) => { if (e.isComposing || e.keyCode === 229) return; if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) run(); });
 
