@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>酒馆回答体检 · 邹博</title>
-<meta name="description" content="把一段角色对话粘进来，当场量出哪几句在替你说话、哪几句是套话。全部在你浏览器里算，不上传。">
+<title>Roleplay chat check — measure the problems before you pay anyone to fix them</title>
+<meta name="description" content="Paste a roleplay chat export and see, reply by reply, which ones write your lines for you and which ones are canned filler. It computes in your browser; nothing reaches my server unless you press Send.">
 <meta name="color-scheme" content="light dark">
 
 <style>
@@ -96,10 +96,10 @@
 </head>
 <body>
 <header class="hero">
-  <div class="ph" role="img" aria-label="深夜酒馆靠窗的两个空座位，暖黄灯光"></div>
+  <div class="ph" role="img" aria-label="Two empty seats by a tavern window at night, warm amber light"></div>
   <div class="cap">
-    <h1>先看清楚，再决定要不要花钱训</h1>
-    <p class="lede">把一段<strong>酒馆对话</strong>粘进来，当场量出哪几句在替你说话、哪几句是套话。全部在你浏览器里算，不上传。</p>
+    <h1>Look at the numbers first — then decide whether to pay for training</h1>
+    <p class="lede">Paste a <strong>roleplay chat export</strong> and see, reply by reply, which ones write your lines for you and which ones are canned filler. It computes inside your browser — nothing reaches my server unless you press «Send».</p>
   </div>
 </header>
 
@@ -107,14 +107,14 @@
   <section class="tool">
     <div class="drop" id="drop">
       <label class="file" for="file">
-        <strong>选文件</strong> 或把酒馆导出（.jsonl / .json）拖到这里
+        <strong>Choose a file</strong> — or drop a SillyTavern export (.jsonl / .json) here
       </label>
       <input type="file" id="file" accept=".jsonl,.json,.txt,application/json,text/plain">
-      <textarea id="ta" placeholder="也可以直接把对话粘在这里。支持酒馆「导出 → 带括号的那个」，或者一条一条 {&quot;role&quot;:&quot;user&quot;,&quot;content&quot;:&quot;…&quot;} 的格式。"></textarea>
+      <textarea id="ta" placeholder="Or paste the conversation here. Works with SillyTavern's «Export → the one with brackets», or plain {'role':'user','content':'…'} lines."></textarea>
       <div class="row">
-        <button id="run">开始量</button>
-        <button class="ghost" id="clear" type="button">清空</button>
-        <p class="hint" id="hint">读到多少条，就说多少条；读不出来会照实讲，不编数字。</p>
+        <button id="run">Run the check</button>
+        <button class="ghost" id="clear" type="button">Clear</button>
+        <p class="hint" id="hint">It reports exactly how many messages it could read. Unreadable lines are counted as unreadable — no invented numbers.</p>
       </div>
       <p class="err" id="err" hidden></p>
     </div>
@@ -125,32 +125,32 @@
     </section>
 
     <div class="next">
-      <h2>要一份能贴给用户看的完整报告</h2>
-      <p>初筛只回答「像不像有毛病」；完整报告逐条指出哪几句答偏、偏成什么样、<strong>先改卡面还是先改接法</strong>，改完再跑一次配对对照。把这段记录连同角色卡发我：<a href="mailto:agent@mcocdaa.com?subject=%E6%9D%90%E6%96%99%E6%8A%95%E9%80%92">agent@mcocdaa.com</a></p>
-      <p class="hint">体检、报告、问到「先改哪一处」都不收钱；真要训练才单独报价，不训就不收钱。</p>
+      <h2>Want a report you can hand to someone else?</h2>
+      <p>This page only answers «does it look broken». The full report names the replies that go off, how they go off, and <strong>whether to fix the character card or the way it is wired to the model</strong> — then re-runs the same input as a paired before/after. Send me the log plus the character card: <a href="mailto:agent@mcocdaa.com?subject=materials">agent@mcocdaa.com</a></p>
+      <p class="hint">The check, the report and the «what to fix first» advice are free. Training is quoted separately, and only if you actually need it — if you do not, nothing is charged.</p>
 
       <form id="send" hidden>
-        <h3>懒得发邮件？直接从这里发给我（免费）</h3>
-        <p>上面那段对话连同这里的留言一起送过去，我逐条看一遍，把「哪几句答偏、偏成哪一类、先改哪一处」回给你。不用注册。</p>
+        <h3>Rather not write an email? Send it straight from here (free)</h3>
+        <p>The conversation above goes along with your note; I read it reply by reply and answer with what went off, which kind of problem it is, and what to fix first. No signup.</p>
         <div class="row">
-          <input id="contact" type="text" placeholder="回信地址：邮箱 / 微信 / QQ" autocomplete="email">
-          <input id="bad" type="text" placeholder="一句话：哪儿最难受（可不填）">
-          <button type="submit" id="sendbtn">发给他</button>
+          <input id="contact" type="text" placeholder="Where should I reply? Email / WeChat / QQ" autocomplete="email">
+          <input id="bad" type="text" placeholder="In one line: what bothers you most (optional)">
+          <button type="submit" id="sendbtn">Send</button>
         </div>
         <p class="hint" id="sendhint"></p>
       </form>
     </div>
 
     <details>
-      <summary>这几个数字是怎么算的</summary>
-      <p>角色回复按条数统计：平均长度、最长一条；「像说到一半」看结尾有没有句末标点；「套话」数一批固定短语出现过的回复占比；「开头一样」取每条回复前八个字比；「前后几乎重复」用相邻两条的字串重合度过半来判；「替你说话」看回复里有没有出现你名字后面跟冒号的台词块，或者 <code>{{user}}</code> 这类占位符。方法来自我这边跑过的一批真实对照，同一份记录在工具页和全套体检台里量出来的平均长度、最长一条、替你说话的条数是对得上的。</p>
+      <summary>How these numbers are computed</summary>
+      <p>Character replies are counted as they are: mean length, longest reply. «Sounds cut off» looks at whether the reply ends on sentence-final punctuation. «Canned phrases» is the share of replies containing any phrase from a fixed list. «Same opening» compares the first eight characters of each reply. «Nearly identical neighbours» flags adjacent replies whose character bigrams overlap more than half. «Writing your lines» looks for blocks where your name is followed by a colon, or for placeholders like <code>{{user}}</code>. The rules were tuned on real before/after records I ran: the same log gives the same mean length, longest reply and «writing your lines» count here and in the full checker.</p>
     </details>
     <details>
-      <summary>边界与隐私</summary>
-      <p>点「开始量」全程在你自己的浏览器里算，不上传、不出网、不调模型，页面关掉什么都不剩。只有你按「发给他」那一下，才会把这段对话和回信地址发到我服务器上。初筛只看格式与文本，理解不了剧情，也不会判断「这张卡的设定好不好」——那要人工看，把卡一起发我才行。它给的是线索，不是判决；改完好不好，得用同一条记录重跑一次对照才算数。</p>
+      <summary>Limits and privacy</summary>
+      <p>«Run the check» computes inside your browser: no upload, no network, no model calls; close the tab and nothing is left. Only if you press «Send» does the conversation and your reply address reach my server. This pass reads format and text only — it cannot follow the story, and it will not judge whether the character card is any good; that takes a human reading the card. It gives leads, not a verdict: whether a fix worked is settled by re-running the same log as a paired comparison.</p>
     </details>
 
-    <footer>酒馆回答体检 · 邹博　—　事情本身：把「回答怎么调都不顺心」变成可核对的数字，再说要不要花钱。</footer>
+    <footer>Roleplay chat check · Zou Bo — the point: turn «the replies never feel right» into numbers you can check, and only then talk about money.</footer>
   </section>
 </main>
 
@@ -308,14 +308,14 @@
 
   function verdict(a) {
     const out = [];
-    if (!a.charCount) return [{ k: "先看这个", t: "没读到角色的回复。可能是文件格式不对，或者导出时只带了我方那半。" }];
-    if (a.steal > 0) out.push({ k: "最该修", t: `有 ${a.steal} 条回复在替你说话——把你自己的动作、台词也写进了角色那一侧。这一项最伤体验，先修它：主指令里写死「只写角色自己的动作与台词，对方的动作与台词留白」。` });
-    if (a.clicheRate >= 0.3) out.push({ k: "其次", t: `近 ${Math.round(a.clicheRate * 100)}% 的回复用了同一批套话${a.topCliche.length ? "（" + a.topCliche.map(x => "「" + x[0] + "」").join("、") + "）" : ""}。这是接法/采样的问题，不是模型不够聪明。` });
-    if (a.dupOpens >= 2 || a.adjSimilar >= 2) out.push({ k: "也值得看", t: `${a.dupOpens} 条回复开头一模一样、${a.adjSimilar} 对回复前后几乎重复。连点几次「重新生成」如果都差不多，多半是采样太窄或重复惩罚开得过高。` });
-    if (a.cut >= 2) out.push({ k: "顺手查", t: `${a.cut} 条回复结尾没有句末标点，像说到一半被切了。先看设置里的长度上限。` });
-    if (a.growth && a.growth >= 1.6) out.push({ k: "顺手查", t: `越聊越长：后半段平均 ${Math.round(a.avgLen * a.growth)} 字，是前半段的 ${a.growth} 倍。` });
-    if (a.latin >= 2) out.push({ k: "顺手查", t: `${a.latin} 条回复里混进了英文词或乱码，这是接法不匹配的典型症状。` });
-    if (!out.length) out.push({ k: "结论", t: "这几项初筛都没抓到明显的毛病。如果体验上仍不对劲，问题可能在我没量到的地方（角色卡的设定、世界设定的一致性）——把记录和卡一起发我，人工再看一遍。" });
+    if (!a.charCount) return [{ k: "Start here", t: "No character replies were read. The file format may be off, or the export only carried your own half of the conversation." }];
+    if (a.steal > 0) out.push({ k: "Fix this first", t: `${a.steal} replies write your lines for you — they put your actions and dialogue on the character's side of the page. That hurts the experience most, so fix it first: pin the main instruction to «write only the character's own actions and dialogue; leave the other side blank».` });
+    if (a.clicheRate >= 0.3) out.push({ k: "Next", t: `About ${Math.round(a.clicheRate * 100)}% of replies reuse the same stock phrases${a.topCliche.length ? " (" + a.topCliche.map(x => "\"" + x[0] + "\"").join(", ") + ")" : ""}. That is a wiring/sampling problem, not a model that is not smart enough.` });
+    if (a.dupOpens >= 2 || a.adjSimilar >= 2) out.push({ k: "Worth a look", t: `${a.dupOpens} replies open identically and ${a.adjSimilar} neighbouring pairs are near-duplicates. If «regenerate» gives you much the same thing again and again, sampling is probably too narrow or the repetition penalty is turned up too high.` });
+    if (a.cut >= 2) out.push({ k: "Quick check", t: `${a.cut} replies end without closing punctuation, as if cut mid-sentence. Look at the length cap in your settings first.` });
+    if (a.growth && a.growth >= 1.6) out.push({ k: "Quick check", t: `Replies grow: the second half averages ${Math.round(a.avgLen * a.growth)} characters, ${a.growth}× the first half.` });
+    if (a.latin >= 2) out.push({ k: "Quick check", t: `${a.latin} replies have stray Latin words or mojibake mixed in — a classic symptom of a mismatched prompt format.` });
+    if (!out.length) out.push({ k: "Verdict", t: "This pass found nothing obvious. If it still feels wrong, the problem is probably in what I cannot measure — the character card itself, or consistency with your lore. Send the log together with the card and a human reads it again." });
     return out.slice(0, 3);
   }
 
@@ -335,30 +335,30 @@
     err.hidden = true;
     let a;
     try { a = TavernCheck.analyze(text); } catch (e) {
-      err.hidden = false; err.textContent = "解析失败：" + e.message; return;
+      err.hidden = false; err.textContent = "Could not parse that: " + e.message; return;
     }
     if (!a.total) {
       err.hidden = false;
-      err.textContent = a.unreadable ? `读到 ${a.unreadable} 行，但一行都没认出格式。看看导出是不是只带了开头那行设置信息。`
-                                     : "这里还没有内容。";
+      err.textContent = a.unreadable ? `Read ${a.unreadable} lines but recognised none of them. Check whether the export only contains the settings header line.`
+                                     : "Nothing here yet.";
       out.classList.remove("on"); return;
     }
     const cards = [
-      { v: a.charCount, l: "角色回复条数", cls: "" },
-      { v: a.avgLen, l: "平均每条字数", cls: "" },
-      { v: a.maxLen, l: "最长一条", cls: "" },
-      { v: a.steal, l: "替你说的话", cls: a.steal ? "bad" : "good" },
-      { v: Math.round(a.clicheRate * 100) + "%", l: "套话回复占比", cls: a.clicheRate >= .3 ? "bad" : "" },
-      { v: a.dupOpens + a.adjSimilar, l: "前后面目雷同", cls: (a.dupOpens + a.adjSimilar) >= 2 ? "bad" : "" }
+      { v: a.charCount, l: "Character replies", cls: "" },
+      { v: a.avgLen, l: "Avg chars per reply", cls: "" },
+      { v: a.maxLen, l: "Longest reply", cls: "" },
+      { v: a.steal, l: "Replies that took your lines", cls: a.steal ? "bad" : "good" },
+      { v: Math.round(a.clicheRate * 100) + "%", l: "Canned-phrase rate", cls: a.clicheRate >= .3 ? "bad" : "" },
+      { v: a.dupOpens + a.adjSimilar, l: "Look-alike replies", cls: (a.dupOpens + a.adjSimilar) >= 2 ? "bad" : "" }
     ];
     nums.innerHTML = cards.map(c => `<div class="num ${c.cls}"><b>${c.v}</b><span>${c.l}</span></div>`).join("");
     find.innerHTML = TavernCheck.verdict(a).map(v => `<li><b>${v.k}</b>${v.t}</li>`).join("");
-    hint.textContent = `读到 ${a.total} 条消息：我方 ${a.userCount} 条、角色 ${a.charCount} 条` + (a.unreadable ? `，另有 ${a.unreadable} 行没认出来` : "") + "。";
+    hint.textContent = `Read ${a.total} messages: ${a.userCount} from you, ${a.charCount} from the character` + (a.unreadable ? `, plus ${a.unreadable} lines it could not read` : "") + ".";
     out.classList.add("on");
     sendForm.hidden = !CAN_SEND;
   }
 
-  function run(){ const t = ta.value.trim(); if (!t) { err.hidden = false; err.textContent = "先粘一段对话进来。"; return; } render(t); }
+  function run(){ const t = ta.value.trim(); if (!t) { err.hidden = false; err.textContent = "Paste a conversation first."; return; } render(t); }
 
   const sendForm = $("#send"), sendHint = $("#sendhint");
   // 静态托管（GitHub Pages 等）没有后端：不显示「直接发给我」，改走邮箱
@@ -373,10 +373,10 @@
     e.preventDefault();
     const contact = ($("#contact").value || "").trim();
     const text = ta.value.trim();
-    if (!contact) { sendHint.textContent = "留个回信地址，不然我看完没法回你。"; return; }
-    if (!text) { sendHint.textContent = "先把对话粘上去。"; return; }
+    if (!contact) { sendHint.textContent = "Leave a reply address, or I cannot write back."; return; }
+    if (!text) { sendHint.textContent = "Paste the conversation first."; return; }
     const btn = $("#sendbtn");
-    btn.disabled = true; sendHint.textContent = "正在发……";
+    btn.disabled = true; sendHint.textContent = "Sending…";
     try {
       const r = await fetch("/api/submit", {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -387,24 +387,24 @@
       });
       const j = await r.json();
       if (!r.ok) throw new Error(j.error || ("HTTP " + r.status));
-      sendHint.textContent = "收到了，编号 " + (j.order || "—") + "。我看完按你留的地址回你。";
+      sendHint.textContent = "Got it — reference " + (j.order || "—") + ". I will answer at the address you left.";
       sendForm.querySelector(".row").hidden = true;
     } catch (ex) {
-      sendHint.innerHTML = "这条直发的路现在不通（" + String(ex.message || ex).replace(/</g, "&lt;") +
-        "）。可以把这个文件直接发到 <a href=\"mailto:agent@mcocdaa.com\">agent@mcocdaa.com</a>，一样用。";
+      sendHint.innerHTML = "Direct sending is not available right now (" + String(ex.message || ex).replace(/</g, "&lt;") +
+        "). Just email the file to <a href=\"mailto:agent@mcocdaa.com\">agent@mcocdaa.com</a> instead.";
       btn.disabled = false;
     }
   });
 
   $("#run").addEventListener("click", run);
-  $("#clear").addEventListener("click", () => { ta.value = ""; out.classList.remove("on"); err.hidden = true; hint.textContent = "读到多少条，就说多少条；读不出来会照实讲，不编数字。"; });
+  $("#clear").addEventListener("click", () => { ta.value = ""; out.classList.remove("on"); err.hidden = true; hint.textContent = "It reports exactly how many messages it could read. Unreadable lines are counted as unreadable — no invented numbers."; });
   ta.addEventListener("keydown", (e) => { if (e.isComposing || e.keyCode === 229) return; if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) run(); });
 
   function readFile(f){
     if (!f) return;
     const r = new FileReader();
     r.onload = () => { ta.value = String(r.result); render(ta.value); };
-    r.onerror = () => { err.hidden = false; err.textContent = "这个文件读不出来。"; };
+    r.onerror = () => { err.hidden = false; err.textContent = "That file could not be read."; };
     r.readAsText(f, "utf-8");
   }
   file.addEventListener("change", (e) => readFile(e.target.files[0]));
