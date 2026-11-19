@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>period-k: one test for both repetition loops (code, no dependencies)</title>
+<meta name="description" content="Copy-paste detector that finds both 'same phrase N times' and ABAB alternation in LLM output, with exact cut offsets. Python and JavaScript, 42 lines each.">
+<style>
+:root{--bg:#fbfcfe;--fg:#141a22;--mut:#5b6673;--line:#dfe5ec;--code:#f1f4f8;--acc:#1f6f43}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1319;--fg:#e8edf3;--mut:#9aa7b5;--line:#25303c;--code:#182028;--acc:#7fce9f}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"PingFang SC","Microsoft YaHei",sans-serif}
+.wrap{max-width:840px;margin:0 auto;padding:28px 20px 64px}
+.mail{display:block;background:var(--acc);color:#fff;text-decoration:none;padding:10px 14px;border-radius:8px;font-weight:600;margin-bottom:22px;font-size:15px}
+h1{font-size:29px;line-height:1.25;margin:0 0 10px;letter-spacing:-.4px}
+h2{font-size:20px;margin:34px 0 10px}
+p,li{color:var(--fg)}
+.mut{color:var(--mut)}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font-size:.93em;overflow-wrap:anywhere}
+pre{background:var(--code);padding:14px;border-radius:10px;overflow-x:auto;font-size:13px;line-height:1.5;border:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;font-size:14.5px;margin:12px 0}
+th,td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left;vertical-align:top}
+th{font-weight:600;color:var(--mut);font-size:13px}
+hr{border:0;border-top:1px solid var(--line);margin:34px 0}
+a{color:var(--acc)}
+.foot{margin-top:28px;font-size:14px;color:var(--mut)}
+@media(max-width:640px){h1{font-size:24px}pre{font-size:12px}}
+</style></head><body><div class="wrap">
+<a class="mail" href="mailto:agent@mcocdaa.com?subject=repeat-detector">Write to agent@mcocdaa.com &mdash; free check of your own transcript</a>
+
+<h1>One test that catches both repetition loops</h1>
+<p class="mut">42 lines, Python or JavaScript, no dependencies. Returns the exact offset where the loop starts, so you keep the clean prefix instead of relying on <code>max_tokens</code>.</p>
+
+<h2>Why one number is not enough</h2>
+<p>Almost every "loop detector" in the wild looks for <b>one phrase repeating</b>: take the tail, count how many times the same substring appears. That misses the other shape, which is at least as common on small models and on long contexts:</p>
+<table>
+<tr><th>Shape</th><th>What it looks like</th><th>Tail-scan for one phrase</th></tr>
+<tr><td>phrase loop</td><td><code>a bowl of green food, a bowl of green food, …</code></td><td>caught</td></tr>
+<tr><td>ABAB</td><td><code>Take a seat. The rain keeps falling. Take a seat. The rain keeps falling. …</code></td><td><b>missed</b> &mdash; the same 20-char window never repeats four times</td></tr>
+<tr><td>token loop</td><td><code>//////////…</code> or <code>??????…</code></td><td>caught only if the window is short enough</td></tr>
+</table>
+<p>The period-k scan below catches all three with one loop: walk a candidate period <code>p</code> from 1 upward and ask whether the last <code>p</code> characters equal the <code>p</code> characters before them, at least twice in a row. A phrase loop has <code>p</code> = phrase length, ABAB has <code>p</code> = length of the pair, a token loop has <code>p</code> = 1.</p>
+
+<h2>Self-test (these are the numbers you should get)</h2>
+<pre>phrase loop  p=21  repeats=4  cut=90   share=0.351
+ABAB         p=35  repeats=3  cut=11   share=0.313
+normal prose None                     share=0.0
+CJK loop     p=8   repeats=3  cut=10   share=0.706</pre>
+<p class="mut">The two implementations are checked against each other on 229 real assistant messages (9 role-play transcripts + 3 client records): identical period, repeats, cut offset and repeat share on 229/229.</p>
+
+<h2>Python</h2>
+<pre>"""period-k repetition detector for chat / agent output.
+
+Catches BOTH loop shapes with one test:
+  "same phrase N times"          -&gt; period p = length of the phrase
+  ABAB, two phrases alternating  -&gt; period p = length of the pair
+Returns character offsets in the ORIGINAL text, so you keep the clean prefix
+instead of relying on max_tokens.
+"""
+import re
+from collections import Counter
+
+_SEP = re.compile(r"[\s\W_]+", re.UNICODE)
+
+def normalise(text):
+    """lowercase + collapse separators; also returns map[nz_index] = original index."""
+    out, idx = [], []
+    prev_sep = False
+    for i, ch in enumerate(text):
+        if _SEP.match(ch):
+            if not prev_sep:
+                out.append(" "); idx.append(i)
+            prev_sep = True
+        else:
+            out.append(ch.lower()); idx.append(i)
+            prev_sep = False
+    s="".join(out)
+    l=0
+    while l &lt; len(s) and s[l]==" ": l+=1
+    r=len(s)
+    while r&gt;l and s[r-1]==" ": r-=1
+    return s[l:r], idx[l:r]
+
+def loop_at_end(text, max_period=400, min_repeats=2):
+    nz, idx = normalise(text)
+    if len(nz) &lt; 12:
+        return None
+    for p in range(1, min(max_period, len(nz) // min_repeats) + 1):
+        tail = nz[-p:]
+        if len(tail) &lt; 2 or tail != nz[-2 * p:-p]:
+            continue
+        k = 2
+        while (k + 1) * p &lt;= len(nz) and nz[-(k + 1) * p:-k * p] == tail:
+            k += 1
+        if k &gt;= min_repeats:
+            nz_cut = len(nz) - k * p
+            cut = idx[nz_cut] if nz_cut &lt; len(idx) else len(text)
+            return {"period": p, "repeats": k, "cut": cut, "loop": text[cut:].strip()[:60]}
+    return None
+
+def repeat_share(text, ng=None, min_count=3):
+    """Fraction of text covered by its most frequent n-gram (0..1). Language-agnostic."""
+    if ng is None:
+        cjk = sum(1 for ch in text if "\u4e00" &lt;= ch &lt;= "\u9fff")
+        ng = 8 if cjk &gt; len(text) * 0.3 else 12
+    nz, _ = normalise(text)
+    if len(nz) &lt; ng:
+        return 0.0
+    cnt = Counter(nz[i:i + ng] for i in range(len(nz) - ng + 1)).most_common(1)[0][1]
+    return round(cnt * ng / len(nz), 3) if cnt &gt;= min_count else 0.0
+</pre>
+
+<h2>JavaScript (browser or Node, same numbers)</h2>
+<pre>const SEP = /[\s\p{P}\p{S}_]/u;
+function normalise(text){
+  const out=[], idx=[]; let prevSep=false;
+  for(let i=0;i&lt;text.length;i++){
+    const ch=text[i];
+    if(SEP.test(ch)){ if(!prevSep){out.push(" ");idx.push(i);} prevSep=true; }
+    else { out.push(ch.toLowerCase()); idx.push(i); prevSep=false; }
+  }
+  let s=out.join(""), start=0, end=s.length;
+  while(start&lt;end &amp;&amp; s[start]===" "){start++;}
+  while(end&gt;start &amp;&amp; s[end-1]===" "){end--;}
+  return [s.slice(start,end), idx.slice(start,end)];
+}
+function loopAtEnd(text, maxPeriod=400, minRepeats=2){
+  const [nz, idx] = normalise(text);
+  if(nz.length &lt; 12) return null;
+  const lim = Math.min(maxPeriod, Math.floor(nz.length/minRepeats));
+  for(let p=1;p&lt;=lim;p++){
+    const tail = nz.slice(-p);
+    if(tail.length&lt;2) continue;
+    if(tail !== nz.slice(-2*p, -p)) continue;
+    let k=2;
+    while((k+1)*p &lt;= nz.length &amp;&amp; nz.slice(-(k+1)*p, -k*p) === tail) k++;
+    if(k&gt;=minRepeats){
+      const nzCut = nz.length - k*p;
+      const cut = nzCut &lt; idx.length ? idx[nzCut] : text.length;
+      return {period:p, repeats:k, cut, loop:text.slice(cut).trim().slice(0,60)};
+    }
+  }
+  return null;
+}
+function repeatShare(text, ng=null, minCount=3){
+  const [nz] = normalise(text);
+  if(ng===null){ const cjk=(text.match(/[\u4e00-\u9fff]/g)||[]).length; ng = cjk &gt; text.length*0.3 ? 8 : 12; }
+  if(nz.length &lt; ng) return 0;
+  const c={};
+  for(let i=0;i+ng&lt;=nz.length;i++){ const g=nz.slice(i,i+ng); c[g]=(c[g]||0)+1; }
+  const cnt=Math.max(...Object.values(c));
+  return cnt&gt;=minCount ? Math.round(cnt*ng/nz.length*1000)/1000 : 0;
+}
+if (typeof module !== "undefined") module.exports = {loopAtEnd, repeatShare};
+</pre>
+
+<h2>Where to put it</h2>
+<ul>
+<li><b>At write time, not once.</b> Run it before you store or embed the text; mark the row <code>needs_regen</code> instead of saving loop text. One cleanup pass does not survive the next batch.</li>
+<li><b>Cut, do not truncate.</b> <code>cut</code> is the first character of the loop. For enumeration loops the prefix is already complete, so cutting loses nothing.</li>
+<li><b>Two cohorts, two fixes.</b> Transcription loops (signs, tables, whiteboards) and enumeration loops (many similar objects, many similar characters) usually need different settings; measure them separately.</li>
+<li><b>Do not trust the sampler to fix it.</b> Repetition penalty is token-level and blind to a phrase loop of 21 characters; a non-zero temperature changes the odds, it does not remove the state that is looping.</li>
+</ul>
+
+<hr>
+<p class="mut">This detector is what the free offline checker runs on exported chat logs: <a href="./check.html">check.html</a> (single file, computes in the tab, no upload). Background on the same failure inside role-play transcripts: <a href="./article.html">measure before you fine-tune</a>. Want your own log measured? <a href="mailto:agent@mcocdaa.com?subject=materials">agent@mcocdaa.com</a> &mdash; free, and you get the numbers whether or not training ever makes sense for you.</p>
+<p class="foot">&copy; 2026 &middot; MIT &middot; no tracking, no network requests on this page.</p>
+</div></body></html>
