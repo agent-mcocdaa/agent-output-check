@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>酒馆回答体检 · 邹博</title>
+<meta name="description" content="把一段角色对话粘进来，当场量出哪几句在替你说话、哪几句是套话。在你浏览器里算，只有你按「发给他」才会送到我的服务器。">
+<meta name="color-scheme" content="light dark">
+
+<style>
+  :root{
+    --ink:#171310; --sub:#5d554c; --line:#e2d9cc; --bg:#fbf8f3; --card:#ffffff;
+    --warm:#b4542a; --warm-soft:#f6e7dc; --ok:#2f6b4f; --link:#8f3f1d;
+    --edge:#f6f1e8;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --ink:#f3ece2; --sub:#bdb2a4; --line:#3a332c; --bg:#14110e; --card:#1c1815;
+      --warm:#f0a077; --warm-soft:#33231a; --ok:#87c9a5; --edge:#1a1613; --link:#f4b58f; }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+    line-height:1.7; font-size:16px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:960px;margin:0 auto;padding:0 20px}
+  /* 首屏 */
+  header.hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line)}
+  .ph{height:clamp(200px,34vw,320px);background:radial-gradient(120% 100% at 70% 20%,#4a3524,#1d1611 70%)}
+  .hero img{display:block;width:100%;height:clamp(240px,42vw,420px);object-fit:cover;opacity:.92}
+  .hero .cap{position:absolute;inset:auto 0 0 0;padding:clamp(18px,4vw,40px);
+    background:linear-gradient(to top, color-mix(in srgb, var(--bg) 92%, transparent), transparent)}
+  h1{font-family:"Songti SC","Noto Serif SC",serif;font-size:clamp(26px,4.6vw,44px);line-height:1.25;margin:0 0 8px;letter-spacing:.01em}
+  .lede{margin:0;color:var(--sub);font-size:clamp(15px,2.2vw,18px)}
+  /* 工具 */
+  .tool{margin:clamp(24px,5vw,44px) 0 0}
+  .drop{
+    background:var(--card); border:1px solid var(--line); border-radius:14px;
+    padding:clamp(14px,3vw,22px);
+  }
+  .drop.dragover{border-color:var(--warm); background:var(--warm-soft)}
+  label.file{
+    display:flex;align-items:center;gap:10px;cursor:pointer;
+    border:1px dashed var(--line);border-radius:10px;padding:14px 16px;color:var(--sub);font-size:15px;
+  }
+  label.file:hover{border-color:var(--warm);color:var(--ink)}
+  label.file strong{color:var(--warm);font-weight:600}
+  input[type=file]{display:none}
+  textarea{
+    width:100%;min-height:132px;margin-top:12px;resize:vertical;
+    font-family:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;font-size:13px;line-height:1.6;
+    padding:12px 14px;border-radius:10px;border:1px solid var(--line);
+    background:var(--bg);color:var(--ink);
+  }
+  textarea:focus{outline:2px solid color-mix(in srgb, var(--warm) 45%, transparent);outline-offset:1px}
+  .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px}
+  button{
+    font:inherit;font-weight:600;border:0;border-radius:10px;padding:11px 20px;cursor:pointer;
+    background:var(--warm);color:var(--ink);
+  }
+  @media (prefers-color-scheme: dark){ button{color:#14110e} }
+  button.ghost{background:transparent;color:var(--sub);border:1px solid var(--line)}
+  button:focus-visible{outline:2px solid var(--warm);outline-offset:2px}
+  #send{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)}
+  #send h3{margin:0 0 6px;font-size:1rem}
+  #send input{flex:1 1 200px;min-width:0;padding:.6rem .7rem;border:1px solid var(--line);border-radius:8px;
+    font:inherit;color:var(--fg);background:color-mix(in srgb, var(--fg) 4%, transparent)}
+  #send input:focus{outline:2px solid color-mix(in srgb, var(--warm) 45%, transparent);outline-offset:1px}
+  .hint{color:var(--sub);font-size:13px;margin:0}
+  /* 结果 */
+  #out{margin-top:18px;display:none}
+  #out.on{display:block}
+  .nums{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:10px}
+  .num{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .num b{display:block;font-family:"Songti SC","Noto Serif SC",serif;font-size:clamp(22px,3.6vw,30px);line-height:1.2}
+  .num span{display:block;color:var(--sub);font-size:12px;margin-top:4px}
+  .num.bad b{color:var(--warm)}
+  .num.good b{color:var(--ok)}
+  ul.find{list-style:none;padding:0;margin:16px 0 0}
+  ul.find li{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--warm);border-radius:10px;padding:12px 16px;margin-bottom:10px}
+  ul.find li b{display:inline-block;font-size:12px;letter-spacing:.12em;color:var(--warm);margin-right:8px}
+  /* 下一步 */
+  .next{margin:clamp(28px,5vw,48px) 0 0;padding:clamp(16px,3vw,24px);border-radius:14px;background:var(--warm-soft)}
+  .next h2{font-family:"Songti SC","Noto Serif SC",serif;font-size:clamp(19px,2.8vw,24px);margin:0 0 8px}
+  .next p{margin:0 0 10px}
+  .next a{color:var(--link);font-weight:600;text-decoration:none;border-bottom:1px solid currentColor}
+  /* 折叠 */
+  details{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
+  summary{cursor:pointer;font-weight:600;font-size:15px}
+  details p{color:var(--sub);font-size:14px;margin:10px 0 0}
+  footer{margin:clamp(30px,6vw,56px) 0 40px;color:var(--sub);font-size:13px;border-top:1px solid var(--line);padding-top:16px}
+  .err{color:var(--warm);font-size:14px;margin-top:10px}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="ph" role="img" aria-label="深夜酒馆靠窗的两个空座位，暖黄灯光"></div>
+  <div class="cap">
+    <h1>先看清楚，再决定要不要花钱训</h1>
+    <p class="lede">把一段<strong>酒馆对话</strong>粘进来，当场量出哪几句在替你说话、哪几句是套话。在你浏览器里算，只有你按「发给他」才会送到我的服务器。
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="tool">
+    <div class="drop" id="drop">
+      <label class="file" for="file">
+        <strong>选文件</strong> 或把酒馆导出（.jsonl / .json）拖到这里
+      </label>
+      <input type="file" id="file" accept=".jsonl,.json,.txt,application/json,text/plain">
+      <textarea id="ta" placeholder="也可以直接把对话粘在这里。支持酒馆「导出 → 带括号的那个」，或者一条一条 {&quot;role&quot;:&quot;user&quot;,&quot;content&quot;:&quot;…&quot;} 的格式。"></textarea>
+      <div class="row">
+        <button id="run">开始量</button>
+        <button class="ghost" id="clear" type="button">清空</button>
+        <p class="hint" id="hint">读到多少条，就说多少条；读不出来会照实讲，不编数字。</p>
+      </div>
+      <p class="err" id="err" hidden></p>
+    </div>
+
+    <section id="out" aria-live="polite">
+      <div class="nums" id="nums"></div>
+      <ul class="find" id="find"></ul>
+    </section>
+
+    <div class="next">
+      <h2>要一份能贴给用户看的完整报告</h2>
+      <p>初筛只回答「像不像有毛病」；完整报告逐条指出哪几句答偏、偏成什么样、<strong>先改卡面还是先改接法</strong>，改完再跑一次配对对照。把这段记录连同角色卡发我：<a href="mailto:agent@mcocdaa.com?subject=%E6%9D%90%E6%96%99%E6%8A%95%E9%80%92">agent@mcocdaa.com</a></p>
+      <p class="hint">体检、报告、问到「先改哪一处」都不收钱；真要训练才单独报价，不训就不收钱。</p>
+
+      <form id="send" hidden>
+        <h3>懒得发邮件？直接从这里发给我（免费）</h3>
+        <p>上面那段对话连同这里的留言一起送过去，我逐条看一遍，把「哪几句答偏、偏成哪一类、先改哪一处」回给你。不用注册。</p>
+        <div class="row">
+          <input id="contact" type="text" placeholder="回信地址：邮箱 / 微信 / QQ" autocomplete="email">
+          <input id="bad" type="text" placeholder="一句话：哪儿最难受（可不填）">
+          <button type="submit" id="sendbtn">发给他</button>
+        </div>
+        <p class="hint" id="sendhint"></p>
+      </form>
+    </div>
+
+    <details>
+      <summary>这几个数字是怎么算的</summary>
+      <p>角色回复按条数统计：平均长度、最长一条；「像说到一半」看结尾有没有句末标点；「套话」数一批固定短语出现过的回复占比；「开头一样」取每条回复前八个字比；「前后几乎重复」用相邻两条的字串重合度过半来判；「替你说话」看回复里有没有出现你名字后面跟冒号的台词块，或者 <code>{{user}}</code> 这类占位符。方法来自我这边跑过的一批真实对照，同一份记录在工具页和全套体检台里量出来的平均长度、最长一条、替你说话的条数是对得上的。</p>
+    </details>
+    <details>
+      <summary>边界与隐私</summary>
+      <p>点「开始量」全程在你自己的浏览器里算，不上传、不出网、不调模型，页面关掉什么都不剩。只有你按「发给他」那一下，才会把这段对话和回信地址发到我服务器上。初筛只看格式与文本，理解不了剧情，也不会判断「这张卡的设定好不好」——那要人工看，把卡一起发我才行。它给的是线索，不是判决；改完好不好，得用同一条记录重跑一次对照才算数。</p>
+    </details>
+
+    <footer>酒馆回答体检 · 邹博　—　事情本身：把「回答怎么调都不顺心」变成可核对的数字，再说要不要花钱。</footer>
+  </section>
+</main>
+
+<script>
+/* 酒馆对话初筛：纯前端、纯本地，不上传、不出网。
+   语义对齐我们的 Python 体检台（diagnose.py）里最稳的几项；这是初筛，不是判决。 */
+(function (root) {
+  const CLICHE = ["好的呢", "微微一笑", "嘴角勾起", "嘴角微微", "嘴角上扬", "勾起嘴角", "眼中闪过", "眼底闪过", "眸光", "眼眸", "不由得", "下意识地", "深吸一口气", "叹了口气", "轻轻叹了口气", "心里一紧", "心跳漏了", "空气仿佛", "仿佛凝固", "沉默了片刻", "沉默了一会", "沉默了一会儿", "眼神复杂", "若有所思", "意味深长", "不容置疑", "毋庸置疑", "不易察觉", "低笑", "轻笑一声", "挑眉", "歪了歪头", "无奈地笑", "喉结", "指尖", "声音低沉", "嗓音沙哑", "微微一顿", "勾唇", "咬了咬唇", "怔了怔"];
+  const CLICHE_EN = ["breath hitched", "shiver down", "couldn't help but", "eyes glinted", "the air was thick", "a mix of", "predatory", "dangerously low", "half-lidded", "swallowed hard", "let out a breath", "let out a shaky breath", "chewed on", "curled her lips", "curled his lips", "hummed thoughtfully", "an unreadable expression", "a ghost of a smile", "something flickered"];
+  const ENDERS = "。！？!?…~～”’」』）).、,";
+
+  function parse(text) {
+    const out = [];
+    const lines = String(text).split(/\r?\n/);
+    let bad = 0;
+    for (const raw of lines) {
+      const line = raw.trim();
+      if (!line) continue;
+      let o;
+      try { o = JSON.parse(line); } catch (e) { bad++; continue; }
+      if (o && (o.chat_metadata || (o.user_name && !o.mes && !o.content))) continue; // 导出头
+      if (o && typeof o.mes === "string") {
+        out.push({ role: o.is_user ? "user" : (o.is_system ? "sys" : "char"), text: o.mes, name: o.name || "" });
+      } else if (o && typeof o.content === "string") {
+        const r = (o.role || "").toLowerCase();
+        out.push({ role: r === "user" ? "user" : (r === "system" ? "sys" : "char"), text: o.content, name: o.name || "" });
+      } else if (o && Array.isArray(o.messages)) {
+        for (const m of o.messages) {
+          if (!m || typeof m.content !== "string") continue;
+          const r = (m.role || "").toLowerCase();
+          out.push({ role: r === "user" ? "user" : (r === "system" ? "sys" : "char"), text: m.content, name: m.name || "" });
+        }
+      } else bad++;
+    }
+    return { msgs: out, unreadable: bad };
+  }
+
+  function bigrams(s) {
+    const t = String(s).replace(/\s+/g, "");
+    const g = new Set();
+    for (let i = 0; i < t.length - 1; i++) g.add(t.slice(i, i + 2));
+    return g;
+  }
+  function jaccard(a, b) {
+    const A = bigrams(a), B = bigrams(b);
+    if (!A.size || !B.size) return 0;
+    let inter = 0;
+    for (const x of A) if (B.has(x)) inter++;
+    return inter / (A.size + B.size - inter);
+  }
+  const r2 = (n) => Math.round(n * 100) / 100;
+
+  // 像说到一半：判据对齐 Python 体检台（diagnose.py）
+  const TERM = "。！？!?….~～\"'”’」』）)】》>";
+  function stripStateBlock(t) {
+    const m = t.match(/```[\s\S]*?```\s*$/);
+    if (m && m.index && m.index > 0) return t.slice(0, m.index).trim();
+    return t;
+  }
+  const TAIL_MARKUP = "*_`\"'”’』」】）)]}~～－-· ";
+  const DANGLING = ["，", "、", "；", "：", ",", ";", ":", "而且", "但是", "然后", "因为", "所以", "并且", "以及", "或是", "还是"];
+  function cutLike(text) {
+    let t = String(text).trim();
+    if (!t) return false;
+    t = stripStateBlock(t);
+    if ([...t].length < 60) return false;
+    if (TERM.includes(t.slice(-1))) return false;
+    const tail = t.replace(/\s+$/, "");
+    const last = tail.slice(-1);
+    if ((last === "*" || last === "_") && (tail.split(last).length - 1) % 2 === 0) return false;
+    let core = tail;
+    while (core && TAIL_MARKUP.includes(core.slice(-1))) core = core.slice(0, -1).replace(/\s+$/, "");
+    if (!core) return false;
+    if (TERM.includes(core.slice(-1))) return false;
+    const last40 = core.slice(-40).replace(/\s+/g, "");
+    if (/[。！？…!?.]/.test(last40) && !DANGLING.some((d) => core.endsWith(d))) return false;
+    return true;
+  }
+  function analyze(text) {
+    const { msgs, unreadable } = parse(text);
+    const chars = msgs.filter(m => m.role === "char");
+    const users = msgs.filter(m => m.role === "user");
+    const n = chars.length;
+    const lens = chars.map(m => [...m.text.trim()].length);
+    const sum = lens.reduce((a, b) => a + b, 0);
+
+    // 像说到一半
+    const cut = chars.filter(m => cutLike(m.text)).length;
+
+    // 套路短语
+    const hits = {};
+    let clicheMsgs = 0;
+    for (const m of chars) {
+      let hit = false;
+      const low = m.text.toLowerCase();
+      for (const w of CLICHE) if (m.text.includes(w)) { hits[w] = (hits[w] || 0) + 1; hit = true; }
+      for (const w of CLICHE_EN) if (low.includes(w)) { hits[w] = (hits[w] || 0) + 1; hit = true; }
+      if (hit) clicheMsgs++;
+    }
+    const topCliche = Object.entries(hits).sort((a, b) => b[1] - a[1]).slice(0, 3);
+
+    // 开头雷同
+    const opens = {};
+    for (const m of chars) {
+      const k = [...m.text.trim()].slice(0, 8).join("");
+      if (k.length >= 4) opens[k] = (opens[k] || 0) + 1;
+    }
+    const dupOpens = Object.values(opens).filter(v => v > 1).reduce((a, b) => a + b, 0);
+
+    // 相邻雷同
+    let adj = 0;
+    for (let i = 1; i < n; i++) if (jaccard(chars[i - 1].text, chars[i].text) >= 0.6) adj++;
+
+    // 替客户说话
+    const names = [...new Set(users.map(m => m.name).filter(Boolean))];
+    const userLines = [...new Set(users.map(m => (m.text || "").trim()).filter(x => x.length >= 6))];
+    const tidy = (x) => x.replace(/^[\s\"'“”‘’]+|[\s\"'“”‘’]+$/g, "");
+    let steal = 0;
+    for (const m of chars) {
+      const t = m.text;
+      if (/\{\{user\}\}|<USER>|\[user\]/i.test(t)) { steal++; continue; }
+      if (names.some(nm => new RegExp("(^|\\n)\\s*" + nm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\s*[:：]").test(t))) { steal++; continue; }
+      // 逐字复述客户原话：去掉「名字:」前缀后，以原话开头（≥6 字）或正文含原话（≥10 字）
+      const body = t.replace(/^\s*[^\n:：]{1,12}[:：]\s*/, "").trim();
+      let hit = false;
+      for (const u of userLines) {
+        const uu = tidy(u);
+        if (!uu) continue;
+        if (uu.length >= 6 && body.startsWith(uu)) { hit = true; break; }
+        if (uu.length >= 10 && body.includes(uu)) { hit = true; break; }
+      }
+      if (hit) steal++;
+    }
+
+    // 越聊越长：前半 / 后半 均长
+    let growth = null;
+    if (n >= 4) {
+      const h = Math.floor(n / 2);
+      const a = lens.slice(0, h).reduce((x, y) => x + y, 0) / h;
+      const b = lens.slice(n - h).reduce((x, y) => x + y, 0) / h;
+      growth = a ? r2(b / a) : null;
+    }
+
+    // 语言混杂：连续拉丁词
+    const latin = chars.filter(m => (m.text.match(/[A-Za-z]{4,}/g) || []).length >= 2).length;
+
+    return {
+      total: msgs.length, userCount: users.length, charCount: n, unreadable,
+      avgLen: n ? r2(sum / n) : 0, maxLen: n ? Math.max(...lens) : 0,
+      cut, clicheMsgs, clicheRate: n ? r2(clicheMsgs / n) : 0, topCliche,
+      dupOpens, adjSimilar: adj, steal, growth, latin,
+      sample: chars.slice(0, 3).map(m => m.text.trim().slice(0, 40))
+    };
+  }
+
+  function verdict(a) {
+    const out = [];
+    if (!a.charCount) return [{ k: "先看这个", t: "没读到角色的回复。可能是文件格式不对，或者导出时只带了我方那半。" }];
+    if (a.steal > 0) out.push({ k: "最该修", t: `有 ${a.steal} 条回复在替你说话——把你自己的动作、台词也写进了角色那一侧。这一项最伤体验，先修它：主指令里写死「只写角色自己的动作与台词，对方的动作与台词留白」。` });
+    if (a.clicheRate >= 0.3) out.push({ k: "其次", t: `近 ${Math.round(a.clicheRate * 100)}% 的回复用了同一批套话${a.topCliche.length ? "（" + a.topCliche.map(x => "「" + x[0] + "」").join("、") + "）" : ""}。这是接法/采样的问题，不是模型不够聪明。` });
+    if (a.dupOpens >= 2 || a.adjSimilar >= 2) out.push({ k: "也值得看", t: `${a.dupOpens} 条回复开头一模一样、${a.adjSimilar} 对回复前后几乎重复。连点几次「重新生成」如果都差不多，多半是采样太窄或重复惩罚开得过高。` });
+    if (a.cut >= 2) out.push({ k: "顺手查", t: `${a.cut} 条回复结尾没有句末标点，像说到一半被切了。先看设置里的长度上限。` });
+    if (a.growth && a.growth >= 1.6) out.push({ k: "顺手查", t: `越聊越长：后半段平均 ${Math.round(a.avgLen * a.growth)} 字，是前半段的 ${a.growth} 倍。` });
+    if (a.latin >= 2) out.push({ k: "顺手查", t: `${a.latin} 条回复里混进了英文词或乱码，这是接法不匹配的典型症状。` });
+    if (!out.length) out.push({ k: "结论", t: "这几项初筛都没抓到明显的毛病。如果体验上仍不对劲，问题可能在我没量到的地方（角色卡的设定、世界设定的一致性）——把记录和卡一起发我，人工再看一遍。" });
+    return out.slice(0, 3);
+  }
+
+  const api = { parse, analyze, verdict, CLICHE };
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  root.TavernCheck = api;
+})(typeof window !== "undefined" ? window : globalThis);
+
+</script>
+<script>
+(function(){
+  const $ = (s) => document.querySelector(s);
+  const ta = $("#ta"), file = $("#file"), out = $("#out"), nums = $("#nums"), find = $("#find"),
+        hint = $("#hint"), err = $("#err"), drop = $("#drop");
+
+  function render(text){
+    err.hidden = true;
+    let a;
+    try { a = TavernCheck.analyze(text); } catch (e) {
+      err.hidden = false; err.textContent = "解析失败：" + e.message; return;
+    }
+    if (!a.total) {
+      err.hidden = false;
+      err.textContent = a.unreadable ? `读到 ${a.unreadable} 行，但一行都没认出格式。看看导出是不是只带了开头那行设置信息。`
+                                     : "这里还没有内容。";
+      out.classList.remove("on"); return;
+    }
+    const cards = [
+      { v: a.charCount, l: "角色回复条数", cls: "" },
+      { v: a.avgLen, l: "平均每条字数", cls: "" },
+      { v: a.maxLen, l: "最长一条", cls: "" },
+      { v: a.steal, l: "替你说的话", cls: a.steal ? "bad" : "good" },
+      { v: Math.round(a.clicheRate * 100) + "%", l: "套话回复占比", cls: a.clicheRate >= .3 ? "bad" : "" },
+      { v: a.dupOpens + a.adjSimilar, l: "前后面目雷同", cls: (a.dupOpens + a.adjSimilar) >= 2 ? "bad" : "" }
+    ];
+    nums.innerHTML = cards.map(c => `<div class="num ${c.cls}"><b>${c.v}</b><span>${c.l}</span></div>`).join("");
+    find.innerHTML = TavernCheck.verdict(a).map(v => `<li><b>${v.k}</b>${v.t}</li>`).join("");
+    hint.textContent = `读到 ${a.total} 条消息：我方 ${a.userCount} 条、角色 ${a.charCount} 条` + (a.unreadable ? `，另有 ${a.unreadable} 行没认出来` : "") + "。";
+    out.classList.add("on");
+    sendForm.hidden = !CAN_SEND;
+  }
+
+  function run(){ const t = ta.value.trim(); if (!t) { err.hidden = false; err.textContent = "先粘一段对话进来。"; return; } render(t); }
+
+  const sendForm = $("#send"), sendHint = $("#sendhint");
+  // 静态托管（GitHub Pages 等）没有后端：不显示「直接发给我」，改走邮箱
+  const CAN_SEND = !/\.github\.io$/.test(location.hostname);
+  function b64(str){
+    const bytes = new TextEncoder().encode(str);
+    let bin = "", chunk = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunk) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+    return btoa(bin);
+  }
+  sendForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const contact = ($("#contact").value || "").trim();
+    const text = ta.value.trim();
+    if (!contact) { sendHint.textContent = "留个回信地址，不然我看完没法回你。"; return; }
+    if (!text) { sendHint.textContent = "先把对话粘上去。"; return; }
+    const btn = $("#sendbtn");
+    btn.disabled = true; sendHint.textContent = "正在发……";
+    try {
+      const r = await fetch("/api/submit", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          answers: { contact: contact, bad: ($("#bad").value || "").trim(), _code: "" },
+          files: [{ name: "pasted-chat.jsonl", data: "data:text/plain;base64," + b64(text) }]
+        })
+      });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || ("HTTP " + r.status));
+      sendHint.textContent = "收到了，编号 " + (j.order || "—") + "。我看完按你留的地址回你。";
+      sendForm.querySelector(".row").hidden = true;
+    } catch (ex) {
+      sendHint.innerHTML = "这条直发的路现在不通（" + String(ex.message || ex).replace(/</g, "&lt;") +
+        "）。可以把这个文件直接发到 <a href=\"mailto:agent@mcocdaa.com\">agent@mcocdaa.com</a>，一样用。";
+      btn.disabled = false;
+    }
+  });
+
+  $("#run").addEventListener("click", run);
+  $("#clear").addEventListener("click", () => { ta.value = ""; out.classList.remove("on"); err.hidden = true; hint.textContent = "读到多少条，就说多少条；读不出来会照实讲，不编数字。"; });
+  ta.addEventListener("keydown", (e) => { if (e.isComposing || e.keyCode === 229) return; if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) run(); });
+
+  function readFile(f){
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = () => { ta.value = String(r.result); render(ta.value); };
+    r.onerror = () => { err.hidden = false; err.textContent = "这个文件读不出来。"; };
+    r.readAsText(f, "utf-8");
+  }
+  file.addEventListener("change", (e) => readFile(e.target.files[0]));
+  ["dragenter","dragover"].forEach(ev => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("dragover"); }));
+  ["dragleave","drop"].forEach(ev => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("dragover"); }));
+  drop.addEventListener("drop", (e) => { const f = e.dataTransfer.files && e.dataTransfer.files[0]; if (f) readFile(f); });
+})();
+</script>
+</body>
+</html>
