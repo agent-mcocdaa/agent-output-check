@@ -223,6 +223,27 @@
     if (/[。！？…!?.]/.test(last40) && !DANGLING.some((d) => core.endsWith(d))) return false;
     return true;
   }
+  // Loop at the tail: after some point the reply keeps emitting the same small block until the cap.
+  // Same ruler as our report (period 1–400, >=3 repeats, >=25% of the reply, not judged under 40 normalized chars),
+  // so the numbers on this page and in our report mean the same thing.
+  function normLoop(s) {
+    return (s || "").normalize("NFKC").replace(/[^\p{L}\p{N}]+/gu, "");
+  }
+  function tailLoop(text, minPeriod, maxPeriod, minRepeats, minCover) {
+    minPeriod = minPeriod || 1; maxPeriod = maxPeriod || 400;
+    minRepeats = minRepeats || 3; minCover = minCover == null ? 0.25 : minCover;
+    const n = normLoop(text);
+    if (n.length < 40) return null;
+    const N = n.length;
+    const top = Math.min(maxPeriod, Math.floor(N / (minRepeats + 1)));
+    for (let p = minPeriod; p <= top; p++) {
+      let r = 1;
+      while (r < 20 && N - (r + 1) * p >= 0 && n.slice(N - r * p, N - (r - 1) * p) === n.slice(N - (r + 1) * p, N - r * p)) r++;
+      if (r >= minRepeats && (r * p) / N >= minCover) return { period: p, repeats: r, cover: Math.round((r * p) / N * 1000) / 1000 };
+    }
+    return null;
+  }
+
   function analyze(text) {
     const { msgs, unreadable } = parse(text);
     const chars = msgs.filter(m => m.role === "char");
@@ -288,6 +309,10 @@
       growth = a ? r2(b / a) : null;
     }
 
+    // Loop at the tail: check every reply for one small block repeating over and over
+    const loops = [];
+    chars.forEach((m, i) => { const L = tailLoop(m.text); if (L) loops.push({ i, period: L.period, repeats: L.repeats, cover: L.cover }); });
+
     // 语言混杂：连续拉丁词
     const latin = chars.filter(m => (m.text.match(/[A-Za-z]{4,}/g) || []).length >= 2).length;
 
@@ -295,7 +320,7 @@
       total: msgs.length, userCount: users.length, charCount: n, unreadable,
       avgLen: n ? r2(sum / n) : 0, maxLen: n ? Math.max(...lens) : 0,
       cut, clicheMsgs, clicheRate: n ? r2(clicheMsgs / n) : 0, topCliche,
-      dupOpens, adjSimilar: adj, steal, growth, latin,
+      dupOpens, adjSimilar: adj, steal, growth, latin, loops,
       sample: chars.slice(0, 3).map(m => m.text.trim().slice(0, 40))
     };
   }
@@ -303,6 +328,7 @@
   function verdict(a) {
     const out = [];
     if (!a.charCount) return [{ k: "Start here", t: "No character replies were read. The file format may be off, or the export only carried your own half of the conversation." }];
+    if (a.loops && a.loops.length) { const t0 = a.loops.slice().sort((x, y) => y.cover - x.cover)[0]; out.push({ k: "Stuck", t: `${a.loops.length} replies start looping near the end — the worst repeats one block of ${t0.period} characters ${t0.repeats} times, which is ${Math.round(t0.cover * 100)}% of the whole reply. That is being stuck, not answering badly: check the length cap in your settings first, then whether the repetition penalty is turned up too high; if both are fine, change the wiring — send the same prompt through a different template once.` }); }
     if (a.steal > 0) out.push({ k: "Fix this first", t: `${a.steal} replies write your lines for you — they put your actions and dialogue on the character's side of the page. That hurts the experience most, so fix it first: pin the main instruction to «write only the character's own actions and dialogue; leave the other side blank».` });
     if (a.clicheRate >= 0.3) out.push({ k: "Next", t: `About ${Math.round(a.clicheRate * 100)}% of replies reuse the same stock phrases${a.topCliche.length ? " (" + a.topCliche.map(x => "\"" + x[0] + "\"").join(", ") + ")" : ""}. That is a wiring/sampling problem, not a model that is not smart enough.` });
     if (a.dupOpens >= 2 || a.adjSimilar >= 2) out.push({ k: "Worth a look", t: `${a.dupOpens} replies open identically and ${a.adjSimilar} neighbouring pairs are near-duplicates. If «regenerate» gives you much the same thing again and again, sampling is probably too narrow or the repetition penalty is turned up too high.` });
@@ -341,6 +367,7 @@
       { v: a.charCount, l: "Character replies", cls: "" },
       { v: a.avgLen, l: "Avg chars per reply", cls: "" },
       { v: a.maxLen, l: "Longest reply", cls: "" },
+      { v: (a.loops || []).length, l: "Stuck in a loop", cls: (a.loops || []).length ? "bad" : "good" },
       { v: a.steal, l: "Replies that took your lines", cls: a.steal ? "bad" : "good" },
       { v: Math.round(a.clicheRate * 100) + "%", l: "Canned-phrase rate", cls: a.clicheRate >= .3 ? "bad" : "" },
       { v: a.dupOpens + a.adjSimilar, l: "Look-alike replies", cls: (a.dupOpens + a.adjSimilar) >= 2 ? "bad" : "" }
