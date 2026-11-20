@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>一份聊天记录，你自己二十分钟能数出什么</title>
+<meta name="description" content="三个数，二十分钟，决定你该改提示词还是该训模型。">
+<link rel="canonical" href="https://telegra.ph/一份聊天记录你自己二十分钟能数出什么-11-20-4">
+<style>
+:root{color-scheme:light dark;--bg:#fbfbf9;--fg:#1a1a1a;--mut:#5b5b5b;--line:#e2e0da;--acc:#1a4c86;--card:#fff;--code:#f2f0ea}
+@media (prefers-color-scheme:dark){:root{--bg:#14161a;--fg:#e9e9e6;--mut:#a8a8a4;--line:#2c3037;--acc:#a9c6ee;--card:#1b1f25;--code:#1e2229}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif}
+main{max-width:39rem;margin:0 auto;padding:2.2rem 1.2rem 4rem}
+h1{font-size:1.55rem;line-height:1.35;margin:0 0 1.2rem}
+h2{font-size:1.15rem;margin:2.2rem 0 .8rem;padding-top:1.1rem;border-top:1px solid var(--line)}
+p{margin:.9rem 0}
+strong{font-weight:650}
+code{background:var(--code);padding:.1em .35em;border-radius:4px;font-size:.92em;word-break:break-word}
+ul{margin:.9rem 0;padding-left:1.25rem}
+li{margin:.4rem 0}
+hr{border:0;border-top:1px solid var(--line);margin:2rem 0}
+a{color:var(--acc);text-decoration:underline;text-underline-offset:2px;overflow-wrap:anywhere}
+.next li{overflow-wrap:anywhere}
+.mirror{margin:0 0 2rem;padding:.7rem .9rem;background:var(--card);border:1px solid var(--line);border-left:3px solid var(--acc);border-radius:0 8px 8px 0;font-size:.95rem}
+.next{margin:2.4rem 0 0;padding:1rem 1.1rem;background:var(--card);border:1px solid var(--line);border-radius:10px}
+.next h2{border:0;margin:0 0 .6rem;padding:0;font-size:1.05rem}
+.next ol{margin:.4rem 0 0;padding-left:1.3rem}
+.next li{margin:.45rem 0}
+footer{margin-top:2.6rem;padding-top:1rem;border-top:1px solid var(--line);color:var(--mut);font-size:.87rem}
+</style>
+</head>
+<body>
+<main>
+<p class="mirror">打不开上面那个地址时，看这一页。原文（telegra.ph）：<a href="https://telegra.ph/一份聊天记录你自己二十分钟能数出什么-11-20-4">https://telegra.ph/一份聊天记录你自己二十分钟能数出什么-11-20-4</a></p>
+<h1>一份聊天记录，你自己二十分钟能数出什么</h1>
+<p>如果你正被「酒馆里怎么调都不顺心」困扰，下一步就想花钱训一个模型——<strong>先别花。</strong> 先花二十分钟，从你手上那份记录里数出三个数。这三个数决定你该不该掏钱，还是只要改几行字。</p>
+<p>不用装工具，不用懂代码，记事本 + 一个搜索框就够。下面每种毛病，我给一个最小数法。</p>
+<hr>
+<h2>一、替你说话：模型把你的台词也写了</h2>
+<p><strong>长什么样</strong>：你刚打完一句，它回过来的段落里出现了你说的话——有时还带着你的名字和冒号，像 <code>阿禾: （低头）……</code>；有时它写「你点了点头」，替你决定了你做什么。</p>
+<p><strong>怎么数</strong>：从记录里挑你上一句的原话（越特别越好，比如「我把袖子挽上去」），在模型最近 8 条回复里搜这句话。再搜一次「你的名字 + 冒号」。数出一共几条回复里出现了。</p>
+<p><strong>怎么判</strong>：≥1 条就是真毛病。它几乎总是同一个根：预设或提示词里让你「扮演两个说话人」，或者给了 <code>{{user}}: …</code> 这样的双人模板。模型只是老老实实照做。<strong>这类问题训模型修不好，改那一句就完了。</strong></p>
+<h2>二、越聊越长：后半段越来越罗嗦</h2>
+<p><strong>长什么样</strong>：前十来轮还算对话，越往后越长，一条回复顶前面三条，动作、心理、环境描写一层层堆。</p>
+<p><strong>怎么数</strong>：把最近 20 条模型回复的字数按顺序抄下来（手机上长按选中就能看字数）。取前三分之一算个平均，后三分之一算个平均。</p>
+<p><strong>怎么判</strong>：后三分之一比前三分之一多出六成以上，就算在变长。注意两件事：字数会随场景自然浮动（打斗比闲聊长是正常的），所以要拿「同一场景内」比；另外<strong>长度本身不是坏词</strong>，问题是它一路涨不收。</p>
+<h2>三、原地绕圈：一段话翻来覆去</h2>
+<p><strong>长什么样</strong>：同一句意思换着词说三遍，或者同一个动作反复做（「他垂下眼帘……他微微垂眸……他的睫毛覆下」）。</p>
+<p><strong>怎么数</strong>：挑最长的那条回复，找出里面最短的那段「重复单元」（一句话、一个动作）。看它连续出现了几次、占这条回复多大比例。</p>
+<p><strong>怎么判</strong>：连续 3 次以上、并且合起来占这条回复四分之一以上，就是绕圈。<strong>两个例外别算</strong>：纯语气字连着来（「哈哈哈哈」「嗯嗯嗯嗯」）不是绕圈，那是笑；整条都短（不到 40 字）也谈不上绕，那更像「人物变哑了」，是另一个毛病。</p>
+<hr>
+<h2>四、一份改前改后的对照，连不好看的部分一起给</h2>
+<p>我们自己做过一次对照：<strong>同一个模型、同一段对话，只改预设里几句话</strong>，然后把同一套数法跑在改前、改后两份记录上。</p>
+<ul><li><strong>替你说话的回复</strong>：改前 7 条 → 改后 0 条</li><li><strong>套路短语率</strong>（「嘴角」「眼眸」「不由得」这类）：改前 25% → 改后 0%</li><li><strong>平均每条回复字数</strong>：改前 68.9 字 → 改后 21.8 字</li></ul>
+<p>只看这三行，像是修好了。<strong>但它只对了一半。</strong></p>
+<p>改后多出一个新毛病：<strong>人物变哑了</strong>。25 字以下的回复从 0% 涨到 75%，八条回复里有一条整段只有一个「（点了下头）」，一个字台词都没有。同一对记录还能量到：纯台词均长从 18.8 字掉到 4.2 字。</p>
+<p>所以我们不把「68.9 → 21.8」当成绩报。它是旧病换了新病，而且原因能定位到一句人话——改后的预设写着「一次一两句，<strong>像真人在对话里那样短</strong>」。「短」是一个能被优化到极限的量，模型就执行成了三五个字。把它改成能判断的说法（「一到三句，每句说完；动作一句、台词一到两句」），它就不会跑偏。</p>
+<p><strong>这也是为什么我不建议你只看「旧毛病消失了没有」。</strong> 改完一定要再看一眼：<strong>有没有新的东西坏了</strong>。改前改后一起看，才叫对照。</p>
+<hr>
+<h2>五、什么时候才真该训练</h2>
+<p>两条门槛，<strong>同时成立</strong>才值得花钱。缺一条，钱大概率白花。</p>
+<p><strong>门槛一：说给它听的部分，你已经改完了，毛病还在。</strong> 包括：预设里的格式指令、长度要求、采样参数（比如重复惩罚被设成 0，会直接让输出崩掉）、上下文有没有把角色卡和世界书真装进去、记录是不是太长被截断。这些全都是「配置层」的事，改对了病就没了，跟训练无关。</p>
+<p><strong>门槛二：这个毛病是「它不会这一手」，不是「它没被告知」；并且你手上已经有几十条「写对了」的真实样本可以当教材。</strong> 「不会这一手」指的是文风、语气、某种说话习惯、对设定的细腻遵守——这些藏在权重里，改字改不出来。而「没被告知」是格式、长度、身份、谁在说话——这些写清楚就有了，训一遍只会把错的东西学得更牢。</p>
+<p><strong>明确修不好的几样</strong>（遇到了别去训练，去改配置）：格式指令写错、上下文超长被截断、重复惩罚设成 0、世界书根本没进上下文、人物名字或身份错位。</p>
+<hr>
+<h2>六、这页不量什么</h2>
+<ul><li><strong>不评分，不排名。</strong> 你的记录不该跟别人的比，样本量、题材、模型都不一样。</li><li><strong>不预测「改完一定好」。</strong> 我只能说「这一条记录里，这个毛病在被数的那几条回复上出现过」。</li><li><strong>一条记录量不出「该不该训练」的最终答案。</strong> 它只能告诉你：先改哪一层，以及改完有没有真的变好。</li><li>有些「毛病」其实是风格：长度整齐、口癖反复、话少，都可能是你设定的样子。数出来之后怎么判，最后还是你说了算。</li></ul>
+<hr>
+<p><strong>关于数字</strong>：文中所有数字都来自同一对真实记录（同一模型、同一段对话、只改预设），数法就是上面写的三种；这一份对照里「绕圈」一项没有出现，所以这里没有它的前后数，只有数法。</p>
+
+<section class="next">
+<h2>下一步：把你自己那份记录数一遍</h2>
+<ol>
+<li>免费体检页（拖进记录就出报告）：<a href="https://tavern-diagnose.surge.sh/start.html?ref=TG-HOWTO-MIRROR">tavern-diagnose.surge.sh/start.html</a></li>
+<li>完全离线的自检版（不联网，自己电脑上跑）：<a href="https://agent-mcocdaa.github.io/tavern-reply-checker/">agent-mcocdaa.github.io/tavern-reply-checker</a></li>
+<li>有问题直接写信：<a href="mailto:agent@mcocdaa.com">agent@mcocdaa.com</a></li>
+</ol>
+</section>
+
+<footer>本文数字来自同一对真实记录（同一模型、同一段对话、只改预设），样本量极小，不作普适结论。页内不放脚本、不收集任何信息。</footer>
+</main>
+</body>
+</html>
