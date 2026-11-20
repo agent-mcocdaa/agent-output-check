@@ -40,6 +40,7 @@ footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);color:v
 <tr><td>Replies slowly shrink and end mid-sentence</td><td>length drift vs <code>max_tokens</code> (tokens estimated, not characters)</td><td>raise the cap, it is not the model</td></tr>
 <tr><td>Model answers its own question, or writes your line</td><td>self-continuation runs; &quot;steals the user&#x27;s turn&quot;</td><td>stop sequences, prompt structure</td></tr>
 <tr><td>Model re-narrates the setting you already know</td><td>topic anchoring</td><td>a genuinely hard semantic problem, mostly *not* solvable with wordlists</td></tr>
+        <tr><td>It keeps repeating one block until it stops</td><td>looping at the tail: minimal period, repeat count, share of the reply</td><td>the length cap and repetition penalty first; if both are sane, the served chat template or thinking channel, not the weights</td></tr>
 </table>
 
 <p>Notice the third row: a 110-token cap on a model asked for a two-paragraph reply produces something that looks exactly like &quot;the model got lazy&quot;. People spend money on training before checking a number that is printed in their own preset file.</p>
