@@ -40,7 +40,6 @@ footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);color:v
 <tr><td>Replies slowly shrink and end mid-sentence</td><td>length drift vs <code>max_tokens</code> (tokens estimated, not characters)</td><td>raise the cap, it is not the model</td></tr>
 <tr><td>Model answers its own question, or writes your line</td><td>self-continuation runs; &quot;steals the user&#x27;s turn&quot;</td><td>stop sequences, prompt structure</td></tr>
 <tr><td>Model re-narrates the setting you already know</td><td>topic anchoring</td><td>a genuinely hard semantic problem, mostly *not* solvable with wordlists</td></tr>
-        <tr><td>It keeps repeating one block until it stops</td><td>looping at the tail: minimal period, repeat count, share of the reply</td><td>the length cap and repetition penalty first; if both are sane, the served chat template or thinking channel, not the weights</td></tr>
 </table>
 
 <p>Notice the third row: a 110-token cap on a model asked for a two-paragraph reply produces something that looks exactly like &quot;the model got lazy&quot;. People spend money on training before checking a number that is printed in their own preset file.</p>
@@ -81,5 +80,6 @@ footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);color:v
 <p>What it does with your data: the export is encrypted in your browser before it leaves, relayed through a public message relay (ntfy.sh) that only sees ciphertext, then decrypted on our machine; never sent to any model, never used for training, and there is a delete button. Diagnostics are free; training, if it is ever the right answer, is quoted separately — and &quot;not enough evidence&quot; is a perfectly normal answer.</p>
 
 <p>If you send me a record that the tool reads badly (a different export shape, a card format, a case where the diagnosis is obviously wrong), that is worth more to me right now than a compliment. Reply here or open an issue and I will look at it.</p>
+<p class="note" style="font-size:.9em">Permanent mirrors of this material: <a href="https://gist.github.com/agent-mcocdaa/f26562468f887ed1ccfc8ed4892ec03f">gist</a> · <a href="https://telegra.ph/Your-agent-keeps-repeating-itself-how-to-tell-whether-its-the-preset-or-the-model-measure-before-you-fine-tune-11-19">telegra.ph</a> · <a href="https://tavern-diagnose.surge.sh/">tavern-diagnose.surge.sh</a>. Offline checker (no network): <a href="/agent-output-check/check.html">check.html</a>; role/content → mes converter: <a href="https://agent-mcocdaa.github.io/tavern-reply-checker/convert.html">convert.html</a>.</p>
 <footer>Written from real records, including the checks we decided <em>not</em> to ship. Try it free: <a href="https://tavern-diagnose.surge.sh/">tavern-diagnose.surge.sh</a></footer>
 </main></body></html>
