@@ -50,7 +50,6 @@ footer{border-top:1px solid var(--line);margin-top:3rem;padding:1.4rem 0 2.6rem;
   <li><b>Opening homogeneity</b> — share of replies starting the same way; the classic "everyone has one voice" smell.</li>
   <li><b>Truncation</b> — replies that stop mid-sentence or right at the token ceiling.</li>
   <li><b>Speaking for the user</b> — the model writing your character's actions and dialogue for you.</li>
-  <li><b>Looping at the tail</b> — replies that start repeating one block (a phrase, two alternating lines, even one token) until they hit the cap; measured as period / repeats / share of the reply.</li>
   <li><b>Read completeness</b> — how many lines were parseable; we say so instead of silently scoring a broken file.</li>
 </ul>
 
@@ -64,6 +63,7 @@ footer{border-top:1px solid var(--line);margin-top:3rem;padding:1.4rem 0 2.6rem;
 <p>Email the export to <code>agent@mcocdaa.com</code> — SillyTavern <em>Export → JSONL</em>, or any log with one message per line carrying <code>mes</code> / <code>text</code> / <code>content</code> and an <code>is_user</code> flag. One to three minutes of compute per transcript; we reply with the report. No account, no payment, and we do not send your data to any model or third party.</p>
 <p class="note">Roleplay is just the first worked example: the same engine reads customer-support bots, companion apps and in-house agent logs. 71 real transcripts and a dozen public presets were used to calibrate the rules.</p>
 
+<p class="note" style="font-size:.9em">Permanent mirrors of this material: <a href="https://gist.github.com/agent-mcocdaa/f26562468f887ed1ccfc8ed4892ec03f">gist</a> · <a href="https://telegra.ph/Your-agent-keeps-repeating-itself-how-to-tell-whether-its-the-preset-or-the-model-measure-before-you-fine-tune-11-19">telegra.ph</a> · <a href="https://tavern-diagnose.surge.sh/">tavern-diagnose.surge.sh</a>. Offline checker (no network): <a href="/agent-output-check/check.html">check.html</a>; role/content → mes converter: <a href="https://agent-mcocdaa.github.io/tavern-reply-checker/convert.html">convert.html</a>.</p>
 <footer>Built and measured offline. This page is static; the checker above runs entirely in your browser.</footer>
 </div>
 </body>
