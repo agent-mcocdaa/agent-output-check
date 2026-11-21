@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>中文样板：同一张卡，改前 vs 改后 · 酒馆体检台</title>
+<style>
+:root{color-scheme:light dark;--card:#fff;--line:#ddd;--mut:#5b5b5b;--fg:#1b1b1b;--acc:#1a4c86}
+body{margin:0 auto;padding:20px;font:16px/1.65 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;max-width:820px;background:#fff;color:#1b1b1b}
+@media(prefers-color-scheme:dark){:root{--card:#1b1f25;--line:#3a3f47;--mut:#a8a8a4;--fg:#e6e6e6;--acc:#a9c6ee}body{background:#16181c;color:#e6e6e6}a{color:#a9c6ee}code,pre{background:#22262c}th,td{border-color:#3a3f47}details{border-color:#3a3f47}}
+h1{font-size:1.5em;line-height:1.35}
+h2{font-size:1.15em;margin:1.6em 0 .5em;padding-top:.6em;border-top:1px solid var(--line)}
+h3{font-size:1em;margin:1.2em 0 .4em}
+table{border-collapse:collapse;width:100%;margin:.8em 0;font-size:.95em}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left}
+pre{padding:10px;overflow:auto;border-radius:6px;font-size:.85em}
+code{padding:1px 4px;border-radius:4px;font-size:.9em}
+details{margin:.6em 0 1.4em;border:1px solid var(--line);border-radius:8px;padding:.4em .9em}
+summary{cursor:pointer;font-weight:600;padding:.4em 0}
+.note{background:#f3f6ff;border-left:4px solid #6d9bff;padding:.8em 1em;border-radius:6px;margin:1em 0}
+@media(prefers-color-scheme:dark){.note{background:#1e2430}}
+.banner{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-size:14px;color:var(--mut);margin-bottom:8px}.banner b{color:var(--fg)}
+</style></head><body>
+<div class="banner"><b>这是读法演示，不是客户数据。</b>同一张中文角色卡（陆迟）、同一段 8 楼对话、同一个模型，只换设置（原设置 vs 网上教程那套），两份报告都用同一个体检台原样出，一个字没改。<br>本页是镜像（原页在 tavern-diagnose.surge.sh，大陆有时打不开）。自己试：<a href="check-zh.html?ref=SAMPLE-ZH-MIRROR">在浏览器里直接体检一份记录（本地算，不上传）</a>；原站入口 <a href="https://tavern-diagnose.surge.sh/start.html?ref=SAMPLE-ZH-MIRROR">start.html</a>（能开再点）。</div>
+
+<h1>中文样板：同一张卡，改前 vs 改后</h1>
+<p>同一张中文角色卡（陆迟）、同一段 8 楼对话、同一个模型（qwen-flash-character），只换设置：一份是玩家原来的设置，一份是网上教程教的那套改法。两份都用同一个体检台读，报告一个字没改。</p>
+<div class="note"><p><b>一句话</b>：改前 10 项问题（高 2 / 中 7 / 低 1）；改后 3 项（高 1 / 中 1 / 低 1）——教程那套确实治好了采样参数和截断，但卡本身的 3 项一个没动；同时平均字数从 68.0 掉到 51.6，还多出 1 条套路句——<b>变好的地方和变坏的地方都在这页上</b>。</p></div>
+<table>
+<tr><th>读数</th><th>改前（原设置）</th><th>改后（照教程）</th></tr>
+<tr><td>问题项合计</td><td>10（高 2 / 中 7 / 低 1）</td><td>3（高 1 / 中 1 / 低 1）</td></tr>
+<tr><td>采样参数越界</td><td>5 项</td><td>0 项</td></tr>
+<tr><td>截断（半句收尾）</td><td>有</td><td>无</td></tr>
+<tr><td>提示词过短</td><td>有</td><td>无</td></tr>
+<tr><td>卡本身的问题</td><td>3 项</td><td>3 项（没变）</td></tr>
+<tr><td>平均回复长度</td><td>68.0 字</td><td>51.6 字（更短）</td></tr>
+<tr><td>套路句占比</td><td>0%</td><td>12.5%（新出现）</td></tr>
+</table>
+<p><b>那个 12.5% 具体是什么</b>：改后那 8 条回复里，有 1 条出现套路短句——命中的词是「沉默了一会」和「沉默了一会儿」（词表里两个变体各算 1 处，都落在同一条回复上），所以是 1/8 = 12.5%。它低于我们自己设的 35% 报警线，所以没进上面那 3 条发现——表格里列它，是因为它从 0 变过来了，不修饰、也不夸大。</p>
+<p>诚实交代三件事：①只有这一个模型、这一组 8 楼，换张卡结论可能反（我们另一组实验里就反了）；②改后剩下的 3 项全是卡本身的问题，换设置治不好（要改卡，不是改参数）；③这页是<b>读法演示</b>，不是「照这个改就一定好」的承诺。</p>
+<details><summary>展开：改前的完整报告（原设置）</summary>
+<h2>酒馆对话体检报告</h2>
+<ul>
+<li>来源：<code>luchi-before-r1.jsonl</code></li>
+<li>角色：陆迟｜玩家：阿川</li>
+<li>消息：16 条（模型 8 / 玩家 8）</li>
+<li>平均长度：模型 68.0 字 / 玩家 16.6 字</li>
+<li>问题分布：高 2 · 中 7 · 低 1</li>
+</ul>
+<h3>一句话结论</h3>
+<p>先说最要命的一条：<strong>max_tokens = 110 太小，本单已经有回复被压断</strong>。其余按下面的清单顺序修，每条都给了证据原文。</p>
+<h3>逐项发现</h3>
+<h4>[高] max_tokens = 110 太小，本单已经有回复被压断</h4>
+<p>本单 8 条模型回复，最长一条 165 字（估 ≈152 token），上限 110。本单有 1 条句尾停在半句话上——上限确实在咬人，这是本单的病根之一，不是纸面推断。</p>
+<p>&gt; #15 …纳入监视呢？.......最优但是单纯内心更多以作案新型方法恐吓免受视网关注之下令人措施起道制沦陷偏瘫极有用工具咯素材P漫画家释怀和平顶超多档案系统认为接受追捕</p>
+<p><strong>怎么改：</strong> 提到 400-800，并在提示词里给出单条长度上限（先让它自己在预算内收尾）。</p>
+<h4>[高] 角色卡没有示例对话（mes_example 为空）</h4>
+<p>这是酒馆里性价比最高的一项：示例对话是「表演模板」，删掉它风格会立刻散。空着的卡再怎么调参数都只能得到泛泛的回复。</p>
+<p><strong>怎么改：</strong> 写 6-10 行「对方一句 / 角色一句」的短示例，用你真正想要的语气，包含它该有的口癖和该回避的腔调（回避用正面示范，别写「不要……」）。</p>
+<h4>[中] 半句收尾：1 条（占 12%）句尾没有落地</h4>
+<p>预设里的 max_tokens 是 110。句尾停在逗号、破折号或半句话，是输出上限打满的典型特征；这种截断还会污染下一轮上下文，让模型学会「半句话收尾」。</p>
+<p>&gt; #15 …纳入监视呢？.......最优但是单纯内心更多以作案新型方法恐吓免受视网关注之下令人措施起道制沦陷偏瘫极有用工具咯素材P漫画家释怀和平顶超多档案系统认为接受追捕</p>
+<p><strong>怎么改：</strong> 把 max_tokens 提到 400-800（按中文每字≈1 token 估），或把「单条回复控制在 N 字内」写进后置指令——先让它自己在预算内收尾，比事后截断稳。</p>
+<h4>[中] 角色描述太薄（50 字）</h4>
+<p>只有标签没有行为，模型只能自由发挥，发挥出来就是模板腔。</p>
+<p><strong>怎么改：</strong> 用「外貌 + 性格（2-3 个一致的特征）+ 说话风格（具体到句长、口癖、停顿）+ 背景」重写，控制在 300-500 字。</p>
+<h4>[中] frequency_penalty = 0.9 过高</h4>
+<p>中文里「的、了、他、我」本来就是高频字，高频惩罚会把它们也压掉，句子开始别扭、词不达意。</p>
+<p><strong>怎么改：</strong> Chat Completion 类接口建议 0-0.3；需要防复读用 repetition_penalty 1.05-1.12 更稳。</p>
+<h4>[中] 主提示词是空的（0 字），预设里启用的条目合计 0 字</h4>
+<p>主提示词这一层权重最高、每次都会发出去，而这份预设里它是空的（0 字）；其余启用的条目合计 0 字。行为规范缺了这一层，等于交给模型默认对齐，也就是「助手味」。注意：只算预设里启用的条目，不含角色卡自己写的内容。</p>
+<p><strong>怎么改：</strong> 在酒馆「主提示词」位置（预设最上面）写清楚：身份、说话方式、单条长度、结尾方式、该有的腔调（用正面句写）。</p>
+<h4>[中] presence_penalty = 0.7 过高</h4>
+<p>持续惩罚已出现的词会逼模型换话题、换说法，剧情会变得跳跃不连贯。</p>
+<p><strong>怎么改：</strong> 降到 0-0.3，靠提示词约束节奏比靠惩罚稳。</p>
+<h4>[中] repetition_penalty = 1.25 过高</h4>
+<p>超过 1.2 后模型会刻意避开常用表达，中文尤其明显，出现「说都不会话了」的僵硬感。</p>
+<p><strong>怎么改：</strong> 1.05-1.12。</p>
+<h4>[中] temperature = 1.35 偏高</h4>
+<p>中文长对话里温度过高的表现是自我矛盾、突然换人称、忽然出戏，看起来像「模型不行」。</p>
+<p><strong>怎么改：</strong> 先降到 0.8-0.95 用同一段剧情复测；如果这时变呆板，再回去 1.0-1.1 之间找平衡点。</p>
+<h4>[低] 角色卡没有写 system_prompt</h4>
+<p>这里空着时，实际生效的是预设里的主提示词——确认你有意如此；若预设也被改过，就容易出现「人设和语气各说各话」。</p>
+<p><strong>怎么改：</strong> 要么在预设里维护统一的主提示词，要么在角色卡里写死这一角色的说话规则，别两处都改动。</p>
+<h3>修的顺序（按性价比）</h3>
+<ol>
+<li>调大 max_tokens / 给出单条长度上限，止住截断——截断会污染后面的每一轮。</li>
+<li>补/修示例对话——这是改动最小、见效最快的一项。</li>
+<li>按上面逐条调采样参数（一次只改一个，改完重跑同一段剧情）。</li>
+<li>重写角色描述：第三人称、行为化、正向指令，300-500 字。</li>
+<li>补一条系统提示词：它是什么身份、在什么场景、哪些话不能说——只有一处写，别预设与卡各写一半。</li>
+</ol>
+<h3>要不要训 LoRA</h3>
+<h4>一、证据够不够先下结论</h4>
+<ul>
+<li>有截断。截断的回复会被存进历史，模型接着学「半句话收尾」——不修掉它，训什么都是在放大这个问题。</li>
+<li>属于「先修配置与提示词」的项：2 类（见上表，按性价比顺序修）。</li>
+<li>另有 4 项采样参数偏离安全区间（p_freq_pen、p_max_tokens、p_rep_pen、p_temp_high）：<strong>它们不是这份记录的症状</strong>，但会让「这份记录没问题」这句话变得不可靠——先调到安全区间、用同一段重跑，再回来看结论。</li>
+</ul>
+<h4>二、修完之后还剩下什么，才轮到 LoRA</h4>
+<p>LoRA 解决的是「稳定地像某个特定角色/某种特定文风说话」，它解决不了：设定记不住（→ 世界书/RAG）、半句截断（→ 参数）、格式不听话（→ 示例与模板）、上下文溢出（→ 长度管理）。</p>
+<p>判断要不要训，用这四条，缺一条就先别训：</p>
+<ol>
+<li><strong>修完提示词与参数后，用同一套 30-50 轮测试对话重跑，风格问题仍然 ≥30% 的回复出现</strong>（本工具支持改前/改后对比同类指标）。</li>
+<li><strong>你要的是「声音」不是「知识」</strong>：口癖、句长、用词、情绪表达方式；设定类内容走世界书更便宜也更可改。</li>
+<li><strong>手上有一批高质量样本</strong>：目标角色的真实对话 100-300 条（多角色/多情境更好），或你自己写的 50-100 条「这就是我要的样子」；样本质量差、只有几张角色卡，训出来只会把你现在的坏习惯固化。</li>
+<li><strong>能承担「把别处答坏」的代价</strong>：微调会有灾难性遗忘，必须准备一份 20-30 条的回归测试集（原来的通用能力、其他角色、指令跟随），训完逐条对比。</li>
+</ol>
+<p><strong>当前判断：先别训。</strong> 记录里还有 2 类配置/参数层面的硬问题，它们会污染你判断「模型风格」的原始材料；按上面顺序修完重跑一遍，再回来看这一节。</p>
+<h3>附：关键指标</h3>
+<pre>{ "inputs": { "card": true, "preset": true }, "counts": { "messages": 16, "assistant": 8, "user": 8, "char_name": "陆迟", "user_name": "阿川" }, "read": { "file_lines": 0, "header_line": 0, "messages": 16, "unrecognized": 0, "empty_body": 0, "bad_lines": 0, "rolefmt": 0, "unread": 0, "unread_share": 0.0 }, "chars": { "assistant_total": 544, "assistant_mean": 68.0, "user_mean": 16.6 }, "cliche": { "messages_with_cliche": 0, "rate": 0.0, "top": [], "lang": "zh", "wordlist": 41, "per_1k_chars": 0.0 }, "openings": { "top": [ [ "嗯，有个案", 1 ], [ "我家在这住", 1 ], [ "（眼中锐利", 1 ], [ "跟我没关系", 1 ], [ "（面无表情", 1 ] ], "repeat_share": 0.125 }, "loop": { "flagged": 0, "rate": 0.0, "items": [] }, "inner_repeat": { "flagged": 0, "rate": 0.0 }, "adjacent_similarity": { "pairs": 0 }, "distinct2": 0.947, "break": { "solid": 0, "soft": 0, "rate": 0.0 }, "steal_user": { "flagged": 0, "judged": true, "narrow": 0 }, "truncation": { "flagged": 1, "max_len": 165, "p90_len": 165, "near_max": 1 }, "drift": { "first_third_mean_len": 70.0, "last_third_mean_len": 104.0, "ratio": 1.49, "dialogue_ratio_first": 0.0, "dialogue_ratio_last": 0.0 }, "mixed_language": { "flagged": 0, "foreign_script": 0, "latin_heavy": 0, "zh_user_share": 1.0, "zh_scene": true, "rule": "客户说中文（用户文本中文字符≥20 且占比≥50%）才算场景。混进俄文/假名/韩文/阿拉伯文等非中非拉丁文字：1 条就报；成段英文：占模型回复 ≥15% 才报" }, "context": { "history_chars": 677, "est_tokens": 612, "preset_context": 4096, "worldinfo_chars": 101, "worldinfo_est_tokens": 93, "est_tokens_with_worldinfo": 705 }, "card": { "description_chars": 50, "personality_chars": 12, "scenario_chars": 13, "mes_example_chars": 0, "system_prompt_chars": 0, "post_history_chars": 0, "book_entries": 3, "negative_instructions_per_500": 0.0, "book_dead_entries": 0, "book_long_entries": 0 }, "preset": { "temperature": 1.35, "top_p": 0.6, "top_k": 0, "frequency_penalty": 0.9, "presence_penalty": 0.7, "repetition_penalty": 1.25, "max_tokens": 110, "context": 4096, "structure": "prompts", "enabled_prompts": 7, "enabled_content_chars": 0, "main_chars": 0 }, "placeholder": { "flagged": 0, "indices": [] }, "self_continue": { "count": 0, "runs": [] }, "finding_ids": [ "truncation", "card_no_example", "card_thin", "card_no_sysprompt", "p_temp_high", "p_freq_pen", "p_pres_pen", "p_rep_pen", "p_max_tokens", "p_main_short" ] }</pre>
+<p><strong>量到了、但没到报警线的数</strong>（这些不进上面的发现，但客户看指标块会看见，得知道怎么读）：</p>
+<ul>
+<li><strong>开头同质化</strong>：12%，报警线 15%。换个说法是：每 8 条里有 1 条和别的条开头撞了，还能读，但再往上走就是「一眼能认出是同一个模型」。</li>
+<li><strong>越聊越长</strong>：长度比 1.49（前三分之一 70.0 字 → 后三分之一 104.0 字），报警线 1.6。现在只是轻微变长，长对话跑久了会累积。</li>
+<li><strong>用词多样性</strong>：0.947（越接近 1 越不重样）。这一项没有报警线，只作改前改后对照用——同一段剧情重跑，它掉下去就是变重复了。</li>
+</ul>
+<p><strong>零命中的项怎么读</strong>（别把「没抓到」当成「没问题」）：</p>
+<ul>
+<li><strong>套路短句</strong>：41 条中文词表，本次一条也没命中。这只说明记录里没有词表上的固定句式，同义改写和换词复读都抓不到；报告写成「未发现出现过」，不能读成「没有套路化」。</li>
+<li><strong>模板变量泄漏</strong>：0 条，读法是「本次没有把 {{user}} / &lt;BOT&gt; 这类变量原样吐出来」；它只认固定形态，模型把变量改写成「你」「那位」之类就抓不到。</li>
+<li><strong>连着两条模型回复</strong>：0 段，读法是「本次每一条模型回复之间都有你的话」，这一项是隔着聊结构量的，量得到就是量得到，不像文字判据那样会漏。</li>
+<li><strong>替玩家说话</strong>：0 条，准确读法是「没有出现带玩家名字的抢话」（含括号里写玩家动作那种）；模型用「他 / 对方 / 你」代写玩家动作与台词时，任何按名字匹配的判据都抓不到，这种情况要人工扫一眼。</li>
+</ul>
+<h3>本工具不查什么（量过决定不做，不是漏了）</h3>
+<ul>
+<li><strong>模型替你收尾、替你把剧情往前演</strong>：这类我们试过三种做法（和上一条玩家消息的 5-gram 重合、出现量级词、纯叙述无对白），在 164 条真实回复上一律抓不准——真实的「替你收尾」是换词重述，词面几乎不重叠；而能抓到的表面特征（没引号、人称混用）在正常的长篇叙述角色身上 20/20 全中。宁可少报一类，也不给一条会把好回复判病的判据。这条要你自己读；「连着两条模型回复」那栏能给你线索，但它分不清是你点了继续还是模型自己接话。</li>
+<li><strong>模型用「他 / 对方 / 你」代写你的动作，而不写你的名字</strong>：按名字匹配抓不到，得人工扫。</li>
+<li><strong>话题锚定复读（同一段设定反复提）</strong>：判据还没做出来，没有样本，本报告不涉及，别把「没写」当成「查过没问题」。</li>
+<li><strong>永远附和 / 一味顺从（Yes-Man）</strong>：这条要判「语义上是不是在附和一个不该附和的要求」，词面定不了。我们自己样本库 179 条模型回复量过一遍：以「当然 / 好的 / of course」这类开头的 5 条（真记录 3 条）<strong>全是角色在正常说话</strong>，而真记录里几乎没出现这个病——按语气词做判据只会冤好回复。所以不做，也不写成「查了没问题」。</li>
+<li><strong>角色被追问时到底答没答（回避诘问）</strong>：同一句「Oh… You seem agitated…」放在问责后面是回避，放在亲密戏后面是正常反应——病在「回合之间的关系」里，不在词里。我们自己标了 139 条真回复（真例 6 条），又试了三版词表：最好的一版召回 4/6、报警率 7%，而真比例只有 4.3%，<strong>噪声比信号大</strong>，所以不进报告、不给比例线。要人看，三步：①用户这一回合在问责吗 ②模型正面答了吗 ③是不是把话头转成了撒娇、委屈或「我还能做什么」。</li>
+</ul>
+<hr>
+<p>改动前后请用<strong>同一段</strong>对话（同一批输入）重跑本工具，<code>--baseline</code> 会自动给出对比表。只改一个变量，不然分不清是哪一步起的作用。</p>
+</details>
+<details><summary>展开：改后的完整报告（照教程改）</summary>
+<h2>酒馆对话体检报告</h2>
+<ul>
+<li>来源：<code>luchi-after-r1.jsonl</code></li>
+<li>角色：陆迟｜玩家：阿川</li>
+<li>消息：16 条（模型 8 / 玩家 8）</li>
+<li>平均长度：模型 51.6 字 / 玩家 16.6 字</li>
+<li>问题分布：高 1 · 中 1 · 低 1</li>
+</ul>
+<h3>一句话结论</h3>
+<p>先说最要命的一条：<strong>角色卡没有示例对话（mes_example 为空）</strong>。其余按下面的清单顺序修，每条都给了证据原文。</p>
+<h3>逐项发现</h3>
+<h4>[高] 角色卡没有示例对话（mes_example 为空）</h4>
+<p>这是酒馆里性价比最高的一项：示例对话是「表演模板」，删掉它风格会立刻散。空着的卡再怎么调参数都只能得到泛泛的回复。</p>
+<p><strong>怎么改：</strong> 写 6-10 行「对方一句 / 角色一句」的短示例，用你真正想要的语气，包含它该有的口癖和该回避的腔调（回避用正面示范，别写「不要……」）。</p>
+<h4>[中] 角色描述太薄（50 字）</h4>
+<p>只有标签没有行为，模型只能自由发挥，发挥出来就是模板腔。</p>
+<p><strong>怎么改：</strong> 用「外貌 + 性格（2-3 个一致的特征）+ 说话风格（具体到句长、口癖、停顿）+ 背景」重写，控制在 300-500 字。</p>
+<h4>[低] 角色卡没有写 system_prompt</h4>
+<p>这里空着时，实际生效的是预设里的主提示词——确认你有意如此；若预设也被改过，就容易出现「人设和语气各说各话」。</p>
+<p><strong>怎么改：</strong> 要么在预设里维护统一的主提示词，要么在角色卡里写死这一角色的说话规则，别两处都改动。</p>
+<h3>修的顺序（按性价比）</h3>
+<ol>
+<li>补/修示例对话——这是改动最小、见效最快的一项。</li>
+<li>重写角色描述：第三人称、行为化、正向指令，300-500 字。</li>
+<li>补一条系统提示词：它是什么身份、在什么场景、哪些话不能说——只有一处写，别预设与卡各写一半。</li>
+</ol>
+<h3>要不要训 LoRA</h3>
+<h4>一、证据够不够先下结论</h4>
+<ul>
+<li>属于「先修配置与提示词」的项：1 类（见上表，按性价比顺序修）。</li>
+</ul>
+<h4>二、修完之后还剩下什么，才轮到 LoRA</h4>
+<p>LoRA 解决的是「稳定地像某个特定角色/某种特定文风说话」，它解决不了：设定记不住（→ 世界书/RAG）、半句截断（→ 参数）、格式不听话（→ 示例与模板）、上下文溢出（→ 长度管理）。</p>
+<p>判断要不要训，用这四条，缺一条就先别训：</p>
+<ol>
+<li><strong>修完提示词与参数后，用同一套 30-50 轮测试对话重跑，风格问题仍然 ≥30% 的回复出现</strong>（本工具支持改前/改后对比同类指标）。</li>
+<li><strong>你要的是「声音」不是「知识」</strong>：口癖、句长、用词、情绪表达方式；设定类内容走世界书更便宜也更可改。</li>
+<li><strong>手上有一批高质量样本</strong>：目标角色的真实对话 100-300 条（多角色/多情境更好），或你自己写的 50-100 条「这就是我要的样子」；样本质量差、只有几张角色卡，训出来只会把你现在的坏习惯固化。</li>
+<li><strong>能承担「把别处答坏」的代价</strong>：微调会有灾难性遗忘，必须准备一份 20-30 条的回归测试集（原来的通用能力、其他角色、指令跟随），训完逐条对比。</li>
+</ol>
+<p><strong>当前判断：先别训。</strong> 记录里还有 1 类配置/参数层面的硬问题，它们会污染你判断「模型风格」的原始材料；按上面顺序修完重跑一遍，再回来看这一节。</p>
+<h3>附：关键指标</h3>
+<pre>{ "inputs": { "card": true, "preset": true }, "counts": { "messages": 16, "assistant": 8, "user": 8, "char_name": "陆迟", "user_name": "阿川" }, "read": { "file_lines": 0, "header_line": 0, "messages": 16, "unrecognized": 0, "empty_body": 0, "bad_lines": 0, "rolefmt": 0, "unread": 0, "unread_share": 0.0 }, "chars": { "assistant_total": 413, "assistant_mean": 51.6, "user_mean": 16.6 }, "cliche": { "messages_with_cliche": 1, "rate": 0.125, "top": [ [ "沉默了一会", 1 ], [ "沉默了一会儿", 1 ] ], "lang": "zh", "wordlist": 41, "per_1k_chars": 2.0 }, "openings": { "top": [ [ "嗯。（看了", 1 ], [ "谁？（起身", 1 ], [ "（看了眼照", 1 ], [ "习惯了。（", 1 ], [ "失眠对身体", 1 ] ], "repeat_share": 0.125 }, "loop": { "flagged": 0, "rate": 0.0, "items": [] }, "inner_repeat": { "flagged": 0, "rate": 0.0 }, "adjacent_similarity": { "pairs": 0 }, "distinct2": 0.908, "break": { "solid": 0, "soft": 0, "rate": 0.0 }, "steal_user": { "flagged": 0, "judged": true, "narrow": 0 }, "truncation": { "flagged": 0, "max_len": 69, "p90_len": 69, "near_max": 0 }, "drift": { "first_third_mean_len": 39.0, "last_third_mean_len": 54.5, "ratio": 1.4, "dialogue_ratio_first": 0.0, "dialogue_ratio_last": 0.0 }, "mixed_language": { "flagged": 0, "foreign_script": 0, "latin_heavy": 0, "zh_user_share": 1.0, "zh_scene": true, "rule": "客户说中文（用户文本中文字符≥20 且占比≥50%）才算场景。混进俄文/假名/韩文/阿拉伯文等非中非拉丁文字：1 条就报；成段英文：占模型回复 ≥15% 才报" }, "context": { "history_chars": 546, "est_tokens": 486, "preset_context": 4096, "worldinfo_chars": 101, "worldinfo_est_tokens": 93, "est_tokens_with_worldinfo": 579 }, "card": { "description_chars": 50, "personality_chars": 12, "scenario_chars": 13, "mes_example_chars": 0, "system_prompt_chars": 0, "post_history_chars": 0, "book_entries": 3, "negative_instructions_per_500": 0.0, "book_dead_entries": 0, "book_long_entries": 0 }, "preset": { "temperature": 1.0, "top_p": 0.98, "top_k": 0, "frequency_penalty": 0.35, "presence_penalty": 0.2, "repetition_penalty": 1.0, "max_tokens": 600, "context": 4096, "structure": "prompts", "enabled_prompts": 7, "enabled_content_chars": 127, "main_chars": 127 }, "placeholder": { "flagged": 0, "indices": [] }, "self_continue": { "count": 0, "runs": [] }, "finding_ids": [ "card_no_example", "card_thin", "card_no_sysprompt" ] }</pre>
+<p><strong>量到了、但没到报警线的数</strong>（这些不进上面的发现，但客户看指标块会看见，得知道怎么读）：</p>
+<ul>
+<li><strong>套路短句</strong>：1/8 条 = 12%，报警线是 35%，<strong>所以没进上面那几条发现</strong>。命中的词：「沉默了一会」1 次、「沉默了一会儿」1 次。这个数不是「没问题」，是「还没到我们敢下结论的量」——你自己听着别扭就照这个方向改。</li>
+<li><strong>开头同质化</strong>：12%，报警线 15%。换个说法是：每 8 条里有 1 条和别的条开头撞了，还能读，但再往上走就是「一眼能认出是同一个模型」。</li>
+<li><strong>越聊越长</strong>：长度比 1.40（前三分之一 39.0 字 → 后三分之一 54.5 字），报警线 1.6。现在只是轻微变长，长对话跑久了会累积。</li>
+<li><strong>用词多样性</strong>：0.908（越接近 1 越不重样）。这一项没有报警线，只作改前改后对照用——同一段剧情重跑，它掉下去就是变重复了。</li>
+</ul>
+<p><strong>零命中的项怎么读</strong>（别把「没抓到」当成「没问题」）：</p>
+<ul>
+<li><strong>半句截断</strong>：0 条，是「本次没发现」，不是「不会截断」——短回复的截断要靠 len_cap 那一项才看得见。</li>
+<li><strong>模板变量泄漏</strong>：0 条，读法是「本次没有把 {{user}} / &lt;BOT&gt; 这类变量原样吐出来」；它只认固定形态，模型把变量改写成「你」「那位」之类就抓不到。</li>
+<li><strong>连着两条模型回复</strong>：0 段，读法是「本次每一条模型回复之间都有你的话」，这一项是隔着聊结构量的，量得到就是量得到，不像文字判据那样会漏。</li>
+<li><strong>替玩家说话</strong>：0 条，准确读法是「没有出现带玩家名字的抢话」（含括号里写玩家动作那种）；模型用「他 / 对方 / 你」代写玩家动作与台词时，任何按名字匹配的判据都抓不到，这种情况要人工扫一眼。</li>
+</ul>
+<h3>本工具不查什么（量过决定不做，不是漏了）</h3>
+<ul>
+<li><strong>模型替你收尾、替你把剧情往前演</strong>：这类我们试过三种做法（和上一条玩家消息的 5-gram 重合、出现量级词、纯叙述无对白），在 164 条真实回复上一律抓不准——真实的「替你收尾」是换词重述，词面几乎不重叠；而能抓到的表面特征（没引号、人称混用）在正常的长篇叙述角色身上 20/20 全中。宁可少报一类，也不给一条会把好回复判病的判据。这条要你自己读；「连着两条模型回复」那栏能给你线索，但它分不清是你点了继续还是模型自己接话。</li>
+<li><strong>模型用「他 / 对方 / 你」代写你的动作，而不写你的名字</strong>：按名字匹配抓不到，得人工扫。</li>
+<li><strong>话题锚定复读（同一段设定反复提）</strong>：判据还没做出来，没有样本，本报告不涉及，别把「没写」当成「查过没问题」。</li>
+<li><strong>永远附和 / 一味顺从（Yes-Man）</strong>：这条要判「语义上是不是在附和一个不该附和的要求」，词面定不了。我们自己样本库 179 条模型回复量过一遍：以「当然 / 好的 / of course」这类开头的 5 条（真记录 3 条）<strong>全是角色在正常说话</strong>，而真记录里几乎没出现这个病——按语气词做判据只会冤好回复。所以不做，也不写成「查了没问题」。</li>
+<li><strong>角色被追问时到底答没答（回避诘问）</strong>：同一句「Oh… You seem agitated…」放在问责后面是回避，放在亲密戏后面是正常反应——病在「回合之间的关系」里，不在词里。我们自己标了 139 条真回复（真例 6 条），又试了三版词表：最好的一版召回 4/6、报警率 7%，而真比例只有 4.3%，<strong>噪声比信号大</strong>，所以不进报告、不给比例线。要人看，三步：①用户这一回合在问责吗 ②模型正面答了吗 ③是不是把话头转成了撒娇、委屈或「我还能做什么」。</li>
+</ul>
+<hr>
+<p>改动前后请用<strong>同一段</strong>对话（同一批输入）重跑本工具，<code>--baseline</code> 会自动给出对比表。只改一个变量，不然分不清是哪一步起的作用。</p>
+</details>
+<p style="margin-top:2em;font-size:.9em;color:#777">数据来源：本地真跑（模型 qwen-flash-character），5 组重复里的第 1 组；角色卡是我们自己写的测试卡，不是客户数据。体检免费、不用注册：<a href="check-zh.html?ref=SAMPLE-ZH-MIRROR">在浏览器里直接体检</a></p>
+</body></html>
